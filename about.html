@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Senās Teikas - Sākums</title>
+    <title>Senās Teikas - Par Vietni</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <header class="site-header">
         <div class="logo">
             <i class="fas fa-scroll fa-3x"></i>
@@ -16,14 +15,14 @@
         </div>
         <nav class="site-nav">
             <ul>
-                <li><a href="index.html" class="active">🏠 Sākums</a></li>
+                <li><a href="index.html">🏠 Sākums</a></li>
                 <li><a href="latest.html">🏛 Jaunākie Ieraksti</a></li>
                 <li><a href="all-entries.html">📖 Visi Ieraksti</a></li>
                 <li class="dropdown">
                     <button class="dropbtn">🌍 Mitoloģijas <i class="fas fa-caret-down"></i></button>
                     <div class="dropdown-content">
-                        <a href="mythologies/norse.html">Skandināvu Mitoloģija</a>
-                        <a href="mythologies/greek.html">Sengrieķu mitoloģija</a>
+                        <a href="mythologies/norse.html">Ziemeļu mitoloģija</a>
+                        <a href="mythologies/greek.html">Grieķu mitoloģija</a>
                         <a href="mythologies/roman.html">Romiešu mitoloģija</a>
                         <a href="mythologies/egyptian.html">Ēģiptes mitoloģija</a>
                         <a href="mythologies/slavic.html">Slāvu mitoloģija</a>
@@ -32,7 +31,7 @@
                     </div>
                 </li>
                 <li><a href="search.html">🔍 Meklēt</a></li>
-                <li><a href="about.html">📜 Par Vietni</a></li>
+                <li><a href="about.html" class="active">📜 Par Vietni</a></li>
             </ul>
         </nav>
         <button id="authButton" class="auth-btn">
@@ -41,18 +40,22 @@
     </header>
 
     <main class="content">
-        <section class="welcome">
-            <h2>Laipni lūgti senajās leģendās</h2>
-            <p>Izpētiet dažādu kultūru mītus, atklājiet stāstus un rodiet iedvesmu.</p>
+        <section class="about-section">
+            <h2>Par Mūsu Vietni</h2>
+            <div class="about-content">
+                <p>Senās Teikas ir vietne, kas veltīta pasaules mitoloģiju un seno stāstu izpētei un saglabāšanai. Mūsu mērķis ir apkopot un dalīties ar bagātīgo kultūras mantojumu, ko mums atstājušas dažādas civilizācijas.</p>
+                
+                <h3>Mūsu Misija</h3>
+                <p>Mēs strādājam, lai:</p>
+                <ul>
+                    <li>Saglabātu un popularizētu pasaules tautu mitoloģisko mantojumu</li>
+                    <li>Radītu pieejamu un interaktīvu platformu mitoloģijas izpētei</li>
+                    <li>Veidotu tiltu starp pagātni un tagadni caur senajiem stāstiem</li>
+                </ul>
+            </div>
         </section>
     </main>
 
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-        </div>
-    </div>
-
     <script src="script.js"></script>
 </body>
-</html>
+</html> 

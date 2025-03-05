@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Senās Teikas - Sākums</title>
+    <title>Senās Teikas - Jaunākie Ieraksti</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <header class="site-header">
         <div class="logo">
             <i class="fas fa-scroll fa-3x"></i>
@@ -16,14 +15,14 @@
         </div>
         <nav class="site-nav">
             <ul>
-                <li><a href="index.html" class="active">🏠 Sākums</a></li>
-                <li><a href="latest.html">🏛 Jaunākie Ieraksti</a></li>
+                <li><a href="index.html">🏠 Sākums</a></li>
+                <li><a href="latest.html" class="active">🏛 Jaunākie Ieraksti</a></li>
                 <li><a href="all-entries.html">📖 Visi Ieraksti</a></li>
                 <li class="dropdown">
                     <button class="dropbtn">🌍 Mitoloģijas <i class="fas fa-caret-down"></i></button>
                     <div class="dropdown-content">
-                        <a href="mythologies/norse.html">Skandināvu Mitoloģija</a>
-                        <a href="mythologies/greek.html">Sengrieķu mitoloģija</a>
+                        <a href="mythologies/norse.html">Ziemeļu mitoloģija</a>
+                        <a href="mythologies/greek.html">Grieķu mitoloģija</a>
                         <a href="mythologies/roman.html">Romiešu mitoloģija</a>
                         <a href="mythologies/egyptian.html">Ēģiptes mitoloģija</a>
                         <a href="mythologies/slavic.html">Slāvu mitoloģija</a>
@@ -41,18 +40,14 @@
     </header>
 
     <main class="content">
-        <section class="welcome">
-            <h2>Laipni lūgti senajās leģendās</h2>
-            <p>Izpētiet dažādu kultūru mītus, atklājiet stāstus un rodiet iedvesmu.</p>
+        <section class="latest-entries">
+            <h2>Jaunākie Ieraksti</h2>
+            <div class="entries-grid">
+                <!-- Content will be dynamically loaded -->
+            </div>
         </section>
     </main>
 
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-        </div>
-    </div>
-
     <script src="script.js"></script>
 </body>
-</html>
+</html> 

@@ -64,6 +64,59 @@ body {
     color: var(--color-primary);
 }
 
+/* Dropdown styles */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropbtn {
+    background: none;
+    border: none;
+    color: var(--color-text);
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 0;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.dropbtn:hover {
+    color: var(--color-primary);
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background: var(--color-surface);
+    min-width: 200px;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    border-radius: 6px;
+    z-index: 1;
+    top: 100%;
+    left: 0;
+    padding: 8px 0;
+}
+
+.dropdown-content a {
+    color: var(--color-text);
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s;
+}
+
+.dropdown-content a:hover {
+    background-color: rgba(146, 64, 14, 0.1);
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
 .auth-btn {
     background: var(--color-primary);
     color: white;
@@ -79,14 +132,15 @@ body {
     background: var(--color-secondary);
 }
 
-/* Контент */
+
 .content {
     flex-grow: 1;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     text-align: center;
-    padding: 50px;
+    padding: 30px;
+    margin-top: 20px;
 }
 
 .welcome {
@@ -311,4 +365,287 @@ input:focus {
 .back-btn:hover {
     background-color: var(--color-border);
     color: white;
+}
+
+/* Mythology Section Styles */
+.mythology-section {
+    max-width: 1200px;
+    margin: 20px auto 0;
+}
+
+.mythology-content {
+    background: var(--color-surface);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 85%;
+    margin: 0 auto;
+    max-width: 1000px;
+}
+
+.mythology-intro {
+    margin-bottom: 30px;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--color-text);
+    width: 95%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.mythology-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 25px;
+    margin: 25px auto;
+    width: 95%;
+}
+
+.category {
+    background: rgba(254, 243, 199, 0.3);
+    padding: 22px;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    min-height: 280px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.category h3 {
+    color: var(--color-primary);
+    margin-bottom: 15px;
+    font-size: 19px;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 10px;
+}
+
+.category ul {
+    list-style: none;
+    padding: 0;
+    flex-grow: 1;
+    margin-bottom: 18px;
+}
+
+.category li {
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 15px;
+    transition: background-color 0.3s ease;
+    cursor: pointer;
+}
+
+.category li:hover {
+    background-color: rgba(146, 64, 14, 0.15);
+}
+
+.show-more-btn {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: var(--color-primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    width: 100%;
+    text-align: center;
+}
+
+.show-more-btn i {
+    margin-left: 8px;
+    transition: transform 0.3s ease;
+}
+
+.show-more-btn:hover {
+    background-color: var(--color-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.show-more-btn:hover i {
+    transform: translateX(5px);
+}
+
+/* Active Navigation Styles */
+.site-nav a.active {
+    color: var(--color-primary);
+    position: relative;
+}
+
+.site-nav a.active::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--color-primary);
+}
+
+.dropdown-content a.active {
+    background-color: rgba(146, 64, 14, 0.1);
+    font-weight: bold;
+}
+
+/* Detailed Pages Styles */
+.detailed-section {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.breadcrumbs {
+    margin-bottom: 20px;
+    color: var(--color-text-light);
+}
+
+.breadcrumbs a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.breadcrumbs a:hover {
+    text-decoration: underline;
+}
+
+.god-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 30px;
+}
+
+.god-card {
+    background: var(--color-surface);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.god-card:hover {
+    transform: translateY(-5px);
+}
+
+.god-image {
+    text-align: center;
+    font-size: 48px;
+    color: var(--color-primary);
+    margin: 20px 0;
+}
+
+.god-info {
+    color: var(--color-text);
+}
+
+.god-info h3 {
+    color: var(--color-primary);
+    margin-bottom: 15px;
+}
+
+.god-info ul {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+}
+
+.god-info li {
+    margin-bottom: 8px;
+    padding-left: 20px;
+    position: relative;
+}
+
+.god-info li:before {
+    content: "•";
+    color: var(--color-primary);
+    position: absolute;
+    left: 0;
+}
+
+.read-more {
+    display: inline-block;
+    margin-top: 15px;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: transparent;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.read-more::after {
+    content: '→';
+    margin-left: 5px;
+    transition: transform 0.3s ease;
+    display: inline-block;
+}
+
+.read-more:hover {
+    color: var(--color-secondary);
+    background: rgba(146, 64, 14, 0.1);
+    transform: translateX(5px);
+}
+
+.read-more:hover::after {
+    transform: translateX(5px);
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 40px;
+    gap: 10px;
+}
+
+.page-btn {
+    padding: 8px 16px;
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.page-btn.active {
+    background: var(--color-primary);
+    color: white;
+}
+
+.page-btn:hover:not(.active) {
+    background: rgba(146, 64, 14, 0.1);
+}
+
+.page-btn.next {
+    padding-right: 12px;
+}
+
+.page-btn.next i {
+    margin-left: 8px;
+}
+
+.mythology-section h2 {
+    color: var(--color-primary);
+    font-size: 2.2em;
+    text-align: center;
+    margin-bottom: 25px;
+    position: relative;
+    padding-bottom: 15px;
+}
+
+.mythology-section h2::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 3px;
+    background: linear-gradient(to right, var(--color-primary), var(--color-secondary));
+    border-radius: 2px;
 }
