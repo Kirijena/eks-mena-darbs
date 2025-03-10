@@ -34,7 +34,7 @@
                 <li><a href="../about.html">📜 Par Vietni</a></li>
             </ul>
         </nav>
-        <button id="authButton" class="auth-btn">
+        <button id="authButton" class="auth-btn" onclick="window.location.href='../login.html'">
             <i class="fas fa-user"></i> Pieteikties
         </button>
     </header>
@@ -98,5 +98,15 @@
     </main>
 
     <script src="../script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const authButton = document.getElementById('authButton');
+            if (authButton) {
+                authButton.addEventListener('click', function() {
+                    window.location.href = '../login.html';
+                });
+            }
+        });
+    </script>
 </body>
 </html> 
