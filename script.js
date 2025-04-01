@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (authButton) {
         authButton.addEventListener("click", function () {
-            window.location.href = "login.html"; // Перенаправление на страницу логина
+            window.location.href = "login.php"; // Перенаправление на страницу логина
         });
     }
 });
