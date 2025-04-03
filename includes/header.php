@@ -42,4 +42,4 @@ $base_path = $is_mythology_page ? '../' : '';
             <i class="fas fa-user"></i> Pieteikties
         </button>
     <?php endif; ?>
-</header> 
+</header>
