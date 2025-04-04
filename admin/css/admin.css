@@ -270,4 +270,31 @@ button:active {
     display: flex;
     flex-direction: column;
     gap: 1rem;
-} 
+}
+
+/* Modal Transition */
+.modal-content {
+    transition: all 0.3s ease-in-out;
+}
+
+.modal-content form input {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+}
+
+.modal-content form button {
+    padding: 1rem;
+    border-radius: 5px;
+    border: none;
+    background: var(--primary-color);
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.modal-content form button:hover {
+    background: var(--primary-dark);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}

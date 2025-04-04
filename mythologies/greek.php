@@ -1,7 +1,52 @@
 <?php
 session_start();
 $current_page = 'greek';
+
+$serveris = "localhost";
+$lietotajs = "grobina1_belovinceva";
+$parole = "U9R1@kvzL";
+$datubaze = "grobina1_belovinceva";
+
+$savienojums = mysqli_connect($serveris, $lietotajs, $parole, $datubaze);
+
+if (!$savienojums) {
+    die("Savienojuma kļūda: " . mysqli_connect_error());
+}
+
+mysqli_set_charset($savienojums, "utf8mb4");
+
+function iegutDatus($savienojums, $zem_tipa) {
+    $dati = [];
+    $sql = "SELECT virsraksti, iss_apraksts FROM eksamens_ieraksti WHERE zem_tipa = ? AND veids = 'Sengrieku Mitologija' ORDER BY ieraksti_id";
+
+    $stmt = mysqli_prepare($savienojums, $sql);
+    if (!$stmt) {
+        die("Kļūda SQL pieprasījuma sagatavošanā: " . mysqli_error($savienojums));
+    }
+
+    mysqli_stmt_bind_param($stmt, "s", $zem_tipa);
+    mysqli_stmt_execute($stmt);
+    $rezultats = mysqli_stmt_get_result($stmt);
+
+    while ($row = mysqli_fetch_assoc($rezultats)) {
+        $dati[] = [
+            "nosaukums" => $row["virsraksti"],
+            "apraksts" => $row["iss_apraksts"]
+        ];
+    }
+
+    mysqli_stmt_close($stmt);
+    return $dati;
+}
+
+$dievi = iegutDatus($savienojums, "Olimpa Dievi");
+$miskas_butnes = iegutDatus($savienojums, "Varoni un Legendas");
+$svarigi_notikumi = iegutDatus($savienojums, "Svarigi Notikumi");
+$mitiskas_butnes = iegutDatus($savienojums, "Mitiskas Butnes");
+
+mysqli_close($savienojums);
 ?>
+
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -26,29 +71,32 @@ $current_page = 'greek';
                     <div class="category">
                         <h3>Olimpa Dievi</h3>
                         <ul>
-                            <li>Zevs - Debesu un pērkona dievs</li>
-                            <li>Atēna - Gudrības un kara mākslas dieve</li>
-                            <li>Apollons - Saules, mākslas un pareģošanas dievs</li>
-                            <li>Afrodīte - Mīlestības un skaistuma dieve</li>
-                            <li>Poseidons - Jūras dievs</li>
-                            <li>Arējs - Kara dievs</li>
+                            <?php if (!empty($dievi)): ?>
+                                <?php foreach ($dievi as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="greek/gods.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Olimpa Dieviem
                         </a>
                     </div>
+
                     
                     <div class="category">
                         <h3>Varoņi un Leģendas</h3>
                         <ul>
-                            <li>Hērakls - Spēcīgākais varonis</li>
-                            <li>Persejs - Medūzas uzvarētājs</li>
-                            <li>Odisejs - Trojas kara varonis</li>
-                            <li>Tēsejs - Minotaura uzvarētājs</li>
-                            <li>Ahillejs - Trojas kara varonis</li>
-                            <li>Orfejs - Talantīgais dziedātājs un pazemes ceļotājs</li>
+                            <?php if (!empty($miskas_butnes)): ?>
+                                <?php foreach ($miskas_butnes as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="greek/heroes.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Varoņiem
                         </a>
                     </div>
@@ -56,14 +104,15 @@ $current_page = 'greek';
                     <div class="category">
                         <h3>Mītiskās Būtnes</h3>
                         <ul>
-                            <li>Medūza - Gorgona ar čūsku matiem</li>
-                            <li>Minotaurs - Puscilvēks-pusvērsis</li>
-                            <li>Hidra - Daudzgalvains ūdens pūķis</li>
-                            <li>Kentauri - Puscilvēki-puszirgi</li>
-                            <li>Pegass - Spārnots zirgs</li>
-                            <li>Fēnikss - Nemirstīgais uguns putns</li>
+                            <?php if (!empty($mitiskas_butnes)): ?>
+                                <?php foreach ($mitiskas_butnes as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="greek/creatures.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Būtnēm
                         </a>
                     </div>
@@ -71,14 +120,15 @@ $current_page = 'greek';
                     <div class="category">
                         <h3>Svarīgie Notikumi</h3>
                         <ul>
-                            <li>Trojas Karš - Desmit gadus ilgs karš</li>
-                            <li>Hērakla Darbi - Divpadsmit neiespējami uzdevumi</li>
-                            <li>Pandoras Kaste - Ļaunumu izcelšanās pasaulē</li>
-                            <li>Tezeja un Minotavrs - Labirinta stāsts</li>
-                            <li>Prometeja Sods - Uguns zagšana dieviem</li>
-                            <li>Perseja Piedzīvojumi - Medūzas uzvarēšana</li>
+                            <?php if (!empty($svarigi_notikumi)): ?>
+                                <?php foreach ($svarigi_notikumi as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="greek/events.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Notikumiem
                         </a>
                     </div>

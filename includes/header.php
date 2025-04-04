@@ -15,8 +15,6 @@ $base_path = $is_mythology_page ? '../' : '';
     <nav class="site-nav">
         <ul>
             <li><a href="<?php echo $base_path; ?>index.php" <?php echo $current_page === 'index' ? 'class="active"' : ''; ?>>🏠 Sākums</a></li>
-            <li><a href="<?php echo $base_path; ?>latest.php" <?php echo $current_page === 'latest' ? 'class="active"' : ''; ?>>🏛 Jaunākie Ieraksti</a></li>
-            <li><a href="<?php echo $base_path; ?>all-entries.php" <?php echo $current_page === 'all-entries' ? 'class="active"' : ''; ?>>📖 Visi Ieraksti</a></li>
             <li class="dropdown">
                 <button class="dropbtn">🌍 Mitoloģijas <i class="fas fa-caret-down"></i></button>
                 <div class="dropdown-content">

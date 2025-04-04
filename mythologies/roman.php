@@ -1,7 +1,56 @@
 <?php
 session_start();
 $current_page = 'roman';
+
+$serveris = "localhost";
+$lietotajs = "grobina1_belovinceva";
+$parole = "U9R1@kvzL";
+$datubaze = "grobina1_belovinceva";
+
+$savienojums = mysqli_connect($serveris, $lietotajs, $parole, $datubaze);
+
+
+if (!$savienojums) {
+    die("Savienojuma kļūda: " . mysqli_connect_error());
+}
+
+
+mysqli_set_charset($savienojums, "utf8mb4");
+
+
+function iegutDatus($savienojums, $zem_tipa) {
+    $dati = [];
+    $sql = "SELECT virsraksti, iss_apraksts FROM eksamens_ieraksti WHERE zem_tipa = ? AND veids = 'Romiesu Mitologija' ORDER BY ieraksti_id";
+
+    $stmt = mysqli_prepare($savienojums, $sql);
+    if (!$stmt) {
+        die("Kļūda SQL pieprasījuma sagatavošanā: " . mysqli_error($savienojums));
+    }
+
+    mysqli_stmt_bind_param($stmt, "s", $zem_tipa);
+    mysqli_stmt_execute($stmt);
+    $rezultats = mysqli_stmt_get_result($stmt);
+
+    while ($row = mysqli_fetch_assoc($rezultats)) {
+        $dati[] = [
+            "nosaukums" => $row["virsraksti"],
+            "apraksts" => $row["iss_apraksts"]
+        ];
+    }
+
+    mysqli_stmt_close($stmt);
+    return $dati;
+}
+
+
+$galvenie_dievi = iegutDatus($savienojums, "Galvenie Dievi");
+$romas_legendas = iegutDatus($savienojums, "Romas Legendas");
+$svetie_simboli_un_rituali = iegutDatus($savienojums, "Svetie Simboli un Rituali");
+$mitiskas_butnes = iegutDatus($savienojums, "Mitiskas Butnes");
+
+mysqli_close($savienojums);
 ?>
+
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -26,14 +75,15 @@ $current_page = 'roman';
                     <div class="category">
                         <h3>Galvenie Dievi</h3>
                         <ul>
-                            <li>Jupiters - Debesu dievs, dievu valdnieks (grieķu Zevs)</li>
-                            <li>Junona - Laulības dieve, Jupitera sieva</li>
-                            <li>Marss - Kara dievs (grieķu Arējs)</li>
-                            <li>Venera - Mīlestības dieve (grieķu Afrodīte)</li>
-                            <li>Minerva - Gudrības dieve (grieķu Atēna)</li>
-                            <li>Neptūns - Jūras dievs (grieķu Poseidons)</li>
+                            <?php if (!empty($galvenie_dievi)): ?>
+                                <?php foreach ($galvenie_dievi as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="roman/gods.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Romas Dieviem
                         </a>
                     </div>
@@ -41,14 +91,15 @@ $current_page = 'roman';
                     <div class="category">
                         <h3>Romas Leģendas</h3>
                         <ul>
-                            <li>Romuls un Rems - Romas dibinātāji</li>
-                            <li>Enejs - Trojas varonis, romiešu ciltstēvs</li>
-                            <li>Latīns - Latīņu ķēniņš</li>
-                            <li>Sabīniešu sievietes - Romas izcelšanās stāsts</li>
-                            <li>Horācija brāļi - Varonīgi romiešu karavīri, kas cīnījās pret Alba Longu</li>
-                            <li>Numa Pompilijs - Otrs Romas karalis, reliģisko tradīciju veidotājs</li>
+                            <?php if (!empty($romas_legendas)): ?>
+                                <?php foreach ($romas_legendas as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="roman/legends.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Leģendām
                         </a>
                     </div>
@@ -56,14 +107,15 @@ $current_page = 'roman';
                     <div class="category">
                         <h3>Svētās Vietas un Rituāli</h3>
                         <ul>
-                            <li>Vestas templis - Mūžīgās uguns mājvieta</li>
-                            <li>Kapitolija templis - Jupitera galvenā svētnīca</li>
-                            <li>Luperkālijas - Auglības svētki</li>
-                            <li>Saturnālijas - Ziemas saulgriežu svinības</li>
-                            <li>Dīmeda svētnīca - Miera un labklājības svētki</li>
-                            <li>Dīānas mežs - Svēta vieta un medību dievietes pielūgsme</li>
+                            <?php if (!empty($svetie_simboli_un_rituali)): ?>
+                                <?php foreach ($svetie_simboli_un_rituali as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="roman/rituals.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Rituāliem
                         </a>
                     </div>
@@ -71,14 +123,15 @@ $current_page = 'roman';
                     <div class="category">
                         <h3>Mītiskās Būtnes</h3>
                         <ul>
-                            <li>Fauns - Meža gars un lauksaimniecības aizbildnis</li>
-                            <li>Lārs - Mājas gars un ģimenes aizbildnis</li>
-                            <li>Penāti - Ģimenes gari un virtuvēs dzīvojošie aizbildņi</li>
-                            <li>Vesta - Uguns dieve un mājas aizbildne</li>
-                            <li>Silvāns - Meža dievs un lauksaimniecības aizbildnis</li>
-                            <li>Pomona - Augļu dieve un dārza aizbildne</li>
+                            <?php if (!empty($mitiskas_butnes)): ?>
+                                <?php foreach ($mitiskas_butnes as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="roman/creatures.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Mītiskajām Būtnēm
                         </a>
                     </div>

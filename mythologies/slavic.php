@@ -1,7 +1,56 @@
 <?php
 session_start();
 $current_page = 'slavic';
+
+$serveris = "localhost";
+$lietotajs = "grobina1_belovinceva";
+$parole = "U9R1@kvzL";
+$datubaze = "grobina1_belovinceva";
+
+$savienojums = mysqli_connect($serveris, $lietotajs, $parole, $datubaze);
+
+
+if (!$savienojums) {
+    die("Savienojuma kļūda: " . mysqli_connect_error());
+}
+
+
+mysqli_set_charset($savienojums, "utf8mb4");
+
+
+function iegutDatus($savienojums, $zem_tipa) {
+    $dati = [];
+    $sql = "SELECT virsraksti, iss_apraksts FROM eksamens_ieraksti WHERE zem_tipa = ? AND veids = 'Slavu Mitologija' ORDER BY ieraksti_id";
+
+    $stmt = mysqli_prepare($savienojums, $sql);
+    if (!$stmt) {
+        die("Kļūda SQL pieprasījuma sagatavošanā: " . mysqli_error($savienojums));
+    }
+
+    mysqli_stmt_bind_param($stmt, "s", $zem_tipa);
+    mysqli_stmt_execute($stmt);
+    $rezultats = mysqli_stmt_get_result($stmt);
+
+    while ($row = mysqli_fetch_assoc($rezultats)) {
+        $dati[] = [
+            "nosaukums" => $row["virsraksti"],
+            "apraksts" => $row["iss_apraksts"]
+        ];
+    }
+
+    mysqli_stmt_close($stmt);
+    return $dati;
+}
+
+
+$galvenie_dievi = iegutDatus($savienojums, "Galvenie Dievi");
+$dabas_gari = iegutDatus($savienojums, "Dabas Gari");
+$svetki_un_rituali = iegutDatus($savienojums, "Svetki un Rituali");
+$mitiskas_butnes = iegutDatus($savienojums, "Mitiskas Butnes");
+
+mysqli_close($savienojums);
 ?>
+
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -26,14 +75,15 @@ $current_page = 'slavic';
                     <div class="category">
                         <h3>Galvenie Dievi</h3>
                         <ul>
-                            <li>Peruns - Pērkona un kara dievs</li>
-                            <li>Veless - Pazemes un lopu dievs</li>
-                            <li>Svarogs - Debesu un uguns dievs</li>
-                            <li>Mokoša - Zemes māte, auglības dieve</li>
-                            <li>Dažbogs - Saules dievs</li>
-                            <li>Stribogs - Vēju valdnieks</li>
+                            <?php if (!empty($galvenie_dievi)): ?>
+                                <?php foreach ($galvenie_dievi as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="slavic/gods.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Slāvu Dieviem
                         </a>
                     </div>
@@ -41,14 +91,15 @@ $current_page = 'slavic';
                     <div class="category">
                         <h3>Dabas Gari</h3>
                         <ul>
-                            <li>Lešijs - Meža gars</li>
-                            <li>Rusalka - Ūdens nimfa</li>
-                            <li>Domoviks - Mājas gars</li>
-                            <li>Vodjaniks - Ūdens gars</li>
-                            <li>Vila - Kalnu un meža nimfa</li>
-                            <li>Bannik - Pirtī dzīvojošais gars</li>
+                            <?php if (!empty($dabas_gari)): ?>
+                                <?php foreach ($dabas_gari as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="slavic/spirits.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Dabas Gariem
                         </a>
                     </div>
@@ -56,14 +107,15 @@ $current_page = 'slavic';
                     <div class="category">
                         <h3>Svētki un Rituāli</h3>
                         <ul>
-                            <li>Kupala - Vasaras saulgriežu svētki</li>
-                            <li>Masļeņica - Pavasara sagaidīšana</li>
-                            <li>Dziady - Senču piemiņas dienas</li>
-                            <li>Koļada - Ziemas saulgriežu svinības</li>
-                            <li>Raduņica - Pavasara mirušo piemiņas diena</li>
-                            <li>Perunovo - Peruna svētki, pavasara sākums</li>
+                            <?php if (!empty($svetki_un_rituali)): ?>
+                                <?php foreach ($svetki_un_rituali as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="slavic/festivals.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Svētkiem
                         </a>
                     </div>
@@ -71,14 +123,15 @@ $current_page = 'slavic';
                     <div class="category">
                         <h3>Mītiskās Būtnes</h3>
                         <ul>
-                            <li>Baba Jaga - Ragana, kas dzīvo mežā uz vistas kājas mājas</li>
-                            <li>Vodjanoi - Ūdens gars, kas dzīvo dziļos ūdeņos</li>
-                            <li>Lešij - Meža gars un dzīvnieku aizbildnis</li>
-                            <li>Rusalka - Ūdens nimfa ar skaisto balsi</li>
-                            <li>Domovoi - Mājas gars un ģimenes sargs</li>
-                            <li>Kikimora - Nakts gars, kas nes murgus</li>
+                            <?php if (!empty($mitiskas_butnes)): ?>
+                                <?php foreach ($mitiskas_butnes as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="slavic/creatures.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Mītiskajām Būtnēm
                         </a>
                     </div>
@@ -87,12 +140,6 @@ $current_page = 'slavic';
         </section>
     </main>
 
-    <div id="authModal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <?php include '../includes/login-form.php'; ?>
-        </div>
-    </div>
 
     <script src="../script.js"></script>
 </body>

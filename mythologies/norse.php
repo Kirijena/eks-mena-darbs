@@ -1,7 +1,52 @@
 <?php
 session_start();
 $current_page = 'norse';
+
+$serveris = "localhost";
+$lietotajs = "grobina1_belovinceva";
+$parole = "U9R1@kvzL";
+$datubaze = "grobina1_belovinceva";
+
+$savienojums = mysqli_connect($serveris, $lietotajs, $parole, $datubaze);
+
+if (!$savienojums) {
+    die("Savienojuma kļūda: " . mysqli_connect_error());
+}
+
+mysqli_set_charset($savienojums, "utf8mb4");
+
+function iegutDatus($savienojums, $zem_tipa) {
+    $dati = [];
+    $sql = "SELECT virsraksti, iss_apraksts FROM eksamens_ieraksti WHERE zem_tipa = ? AND veids = 'Skandināvu Mitoloģija' ORDER BY ieraksti_id";
+
+    $stmt = mysqli_prepare($savienojums, $sql);
+    if (!$stmt) {
+        die("Kļūda SQL pieprasījuma sagatavošanā: " . mysqli_error($savienojums));
+    }
+
+    mysqli_stmt_bind_param($stmt, "s", $zem_tipa);
+    mysqli_stmt_execute($stmt);
+    $rezultats = mysqli_stmt_get_result($stmt);
+
+    while ($row = mysqli_fetch_assoc($rezultats)) {
+        $dati[] = [
+            "nosaukums" => $row["virsraksti"],
+            "apraksts" => $row["iss_apraksts"]
+        ];
+    }
+
+    mysqli_stmt_close($stmt);
+    return $dati;
+}
+
+$dievi = iegutDatus($savienojums, "Dievi");
+$miskas_butnes = iegutDatus($savienojums, "Mītiskās Būtnes");
+$svarigi_notikumi = iegutDatus($savienojums, "Svarīgi Notikumi");
+
+mysqli_close($savienojums);
 ?>
+
+
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -15,40 +60,43 @@ $current_page = 'norse';
     <?php include '../includes/header.php'; ?>
 
     <main class="content">
-    <section class="mythology-section">
+        <section class="mythology-section">
             <h2>Skandināvu Mitoloģija</h2>
             <div class="mythology-content">
                 <div class="mythology-intro">
-                    <p>Skandināvu Mitoloģija ietver leģendas par dieviem (Odiens, Tors, Loki) ], mītiskām būtnēm un motikumiem, tostarp Ragnatoku.</p>
+                    <p>Skandināvu Mitoloģija ietver leģendas par dieviem (Odins, Tors, Loki), mītiskām būtnēm un notikumiem, tostarp Ragnaroku.</p>
                 </div>
                 
                 <div class="mythology-categories">
-                    <div class="category">
-                        <h3>Dievi</h3>
-                        <ul>
-                            <li>Odins - Visu tēvs, gudrības dievs </li>
-                            <li>Tors - Pērkona dievs</li>
-                            <li>Loki - Viltības dievs</li>
-                            <li>Freija - Mīlestības un skaistuma dieve</li>
-                            <li>Baldrs - Gaismas un tīrības dievs</li>
-                            <li>Hēnirs - Uguns un rūpniecības dievs</li>
-                        </ul>
-                        <a href="norse/gods.html" class="show-more-btn">
-                            <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Skandināvu
-                        </a>
-                    </div>
+                <div class="category">
+            <h3>Dievi</h3>
+                 <ul>
+                    <?php if (!empty($dievi)): ?>
+                    <?php foreach ($dievi as $dievs): ?>
+                        <li><?php echo htmlspecialchars($dievs["nosaukums"]); ?></li>
+                    <?php endforeach; ?>
+                 <?php else: ?>
+                    <li>Nav pieejamu datu</li>
+                <?php endif; ?>
+                </ul>
+                <a class="show-more-btn">
+                 <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Dieviem
+                    </a>
+                </div>
+
                     
                     <div class="category">
                         <h3>Mītiskās Būtnes</h3>
                         <ul>
-                            <li>Valkyras - Kara jaunavas</li>
-                            <li>Jotuni - Milži</li>
-                            <li>Dvergi - Rūķi</li>
-                            <li>Fenrirs - Lielais vilks</li>
-                            <li>Nīfas - Ūdens gara būtības</li>
-                            <li>Draugar - Mirušie gari</li>
+                            <?php if (!empty($miskas_butnes)): ?>
+                                <?php foreach ($miskas_butnes as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="norse/creatures.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Būtnēm
                         </a>
                     </div>
@@ -56,14 +104,15 @@ $current_page = 'norse';
                     <div class="category">
                         <h3>Svarīgi Notikumi</h3>
                         <ul>
-                            <li>Ragnaroks - Pasaules gals</li>
-                            <li>Pasaules koka Igrasīla stasts</li>
-                            <li>Tora āmura Mjolnira stāsta</li>
-                            <li>Bifrost tilts</li>
-                            <li>Freijas laulība ar Odrī</li>
-                            <li>Dievu karš</li>
+                            <?php if (!empty($svarigi_notikumi)): ?>
+                                <?php foreach ($svarigi_notikumi as $notikums): ?>
+                                    <li><?php echo htmlspecialchars($notikums["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="norse/events.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Notikumiem
                         </a>
                     </div>
@@ -81,4 +130,4 @@ $current_page = 'norse';
 
     <script src="../script.js"></script>
 </body>
-</html> 
+</html>

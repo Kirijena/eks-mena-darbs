@@ -2,13 +2,12 @@
 session_start();
 require '../includes/connect_db.php';
 
-// Check if user is admin
+
 if (!isset($_SESSION['admin_id'])) {
     header('Location: login.php');
     exit();
 }
 
-// Handle user deletion
 if (isset($_POST['delete_user'])) {
     $user_id = (int)$_POST['user_id'];
     $stmt = $savienojums->prepare("DELETE FROM eksamens_lietotajs WHERE lietotajs_id = ?");
@@ -16,7 +15,7 @@ if (isset($_POST['delete_user'])) {
     $stmt->execute();
 }
 
-// Handle user update
+
 if (isset($_POST['update_user'])) {
     $user_id = (int)$_POST['user_id'];
     $approved = (int)$_POST['approved'];
@@ -26,7 +25,7 @@ if (isset($_POST['update_user'])) {
     $stmt->execute();
 }
 
-// Handle new user creation
+
 if (isset($_POST['create_user'])) {
     $username = trim($_POST['username']);
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
@@ -40,7 +39,7 @@ if (isset($_POST['create_user'])) {
     $stmt->execute();
 }
 
-// Add this near the top of the file with other POST handlers
+
 if (isset($_POST['update_user_details'])) {
     $user_id = (int)$_POST['user_id'];
     $username = trim($_POST['username']);
@@ -54,7 +53,7 @@ if (isset($_POST['update_user_details'])) {
     $stmt->execute();
 }
 
-// Fetch all users
+
 $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietotajs_id DESC");
 ?>
 
@@ -73,6 +72,9 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
         <div class="admin-header">
             <h1><i class="fas fa-users-cog"></i> Lietotāju Pārvaldība</h1>
             <div class="admin-actions">
+            <a href="ieraksts.php" class="admin-btn">
+            Ieraksti
+        </a>
                 <button onclick="showCreateUserForm()" class="admin-btn">
                     <i class="fas fa-user-plus"></i> Jauns Lietotājs
                 </button>
@@ -168,7 +170,7 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
         </div>
     </div>
 
-    <!-- Add Edit User Modal -->
+
     <div id="editUserModal" class="modal">
         <div class="modal-content">
             <h2><i class="fas fa-user-edit"></i> Rediģēt Lietotāju</h2>

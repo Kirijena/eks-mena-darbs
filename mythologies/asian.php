@@ -1,7 +1,56 @@
 <?php
 session_start();
 $current_page = 'asian';
+
+$serveris = "localhost";
+$lietotajs = "grobina1_belovinceva";
+$parole = "U9R1@kvzL";
+$datubaze = "grobina1_belovinceva";
+
+$savienojums = mysqli_connect($serveris, $lietotajs, $parole, $datubaze);
+
+
+if (!$savienojums) {
+    die("Savienojuma kļūda: " . mysqli_connect_error());
+}
+
+
+mysqli_set_charset($savienojums, "utf8mb4");
+
+
+function iegutDatus($savienojums, $zem_tipa) {
+    $dati = [];
+    $sql = "SELECT virsraksti, iss_apraksts FROM eksamens_ieraksti WHERE zem_tipa = ? AND veids = 'Azijas Mitologija' ORDER BY ieraksti_id";
+
+    $stmt = mysqli_prepare($savienojums, $sql);
+    if (!$stmt) {
+        die("Kļūda SQL pieprasījuma sagatavošanā: " . mysqli_error($savienojums));
+    }
+
+    mysqli_stmt_bind_param($stmt, "s", $zem_tipa);
+    mysqli_stmt_execute($stmt);
+    $rezultats = mysqli_stmt_get_result($stmt);
+
+    while ($row = mysqli_fetch_assoc($rezultats)) {
+        $dati[] = [
+            "nosaukums" => $row["virsraksti"],
+            "apraksts" => $row["iss_apraksts"]
+        ];
+    }
+
+    mysqli_stmt_close($stmt);
+    return $dati;
+}
+
+
+$kiniesu_mitologija = iegutDatus($savienojums, "Kiniesu Mitologija");
+$japaņu_mitologija = iegutDatus($savienojums, "Japaņu Mitologija");
+$citas_azijas_tradicijas = iegutDatus($savienojums, "Citas Azijas Tradicijas");
+$cinas_makslas_un_karotaji = iegutDatus($savienojums, "Cīnas Makslas un Karotaji");
+
+mysqli_close($savienojums);
 ?>
+
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -26,14 +75,15 @@ $current_page = 'asian';
                     <div class="category">
                         <h3>Ķīniešu Mitoloģija</h3>
                         <ul>
-                            <li>Jade imperators - Debesu valdnieks</li>
-                            <li>Sun Wukong - Pērtiķu karalis</li>
-                            <li>Chang'e - Mēness dieve</li>
-                            <li>Pangu - Pasaules radītājs</li>
-                            <li>Astoņi nemirstīgie - Taoisma svētie</li>
-                            <li>Nuwa - Cilvēces radītāja un pasaules glābēja</li>
+                            <?php if (!empty($kiniesu_mitologija)): ?>
+                                <?php foreach ($kiniesu_mitologija as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="asian/chinese.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Ķīniešu Mitoloģiju
                         </a>
                     </div>
@@ -41,14 +91,15 @@ $current_page = 'asian';
                     <div class="category">
                         <h3>Japāņu Mitoloģija</h3>
                         <ul>
-                            <li>Amaterasu - Saules dieve</li>
-                            <li>Susanoo - Vētru dievs</li>
-                            <li>Jokaji - Nakts gari</li>
-                            <li>Kitsune - Lapsu gari</li>
-                            <li>Kami - Dabas un senču gari</li>
-                            <li>Izanagi un Izanami - Pasaules radītāji</li>
+                            <?php if (!empty($japaņu_mitologija)): ?>
+                                <?php foreach ($japaņu_mitologija as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="asian/japanese.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Japāņu Mitoloģiju
                         </a>
                     </div>
@@ -56,14 +107,15 @@ $current_page = 'asian';
                     <div class="category">
                         <h3>Citas Āzijas Tradīcijas</h3>
                         <ul>
-                            <li>Garuda - Hinduisma putnu dievība</li>
-                            <li>Nāgas - Indiešu čūsku gari</li>
-                            <li>Dokkaebi - Korejiešu goblini</li>
-                            <li>Hanuman - Hinduisma pērtiķu dievs</li>
-                            <li>Mazu - Ķīniešu jūras dieve</li>
-                            <li>Rākšasa - Indiešu ļaunie gari</li>
+                            <?php if (!empty($citas_azijas_tradicijas)): ?>
+                                <?php foreach ($citas_azijas_tradicijas as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="asian/other.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Citām Tradīcijām
                         </a>
                     </div>
@@ -71,14 +123,15 @@ $current_page = 'asian';
                     <div class="category">
                         <h3>Cīņas Mākslas un Karotāji</h3>
                         <ul>
-                            <li>Sun Wukong - Pērtiķu karalis ar maģisko nūju</li>
-                            <li>Guan Yu - Dievišķais karotājs un taisnīguma simbols</li>
-                            <li>Tomoe Gozen - Leģendārā sieviete samuraja</li>
-                            <li>Bodhidharma - Šaolina cīņas mākslu dibinātājs</li>
-                            <li>Miyamoto Musashi - Nepārspētais zobena meistars</li>
-                            <li>Hattori Hanzo - Slavenais nindzja kareivis</li>
+                            <?php if (!empty($cinas_makslas_un_karotaji)): ?>
+                                <?php foreach ($cinas_makslas_un_karotaji as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="asian/warriors.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Karotājiem
                         </a>
                     </div>

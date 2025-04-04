@@ -1,7 +1,57 @@
 <?php
 session_start();
 $current_page = 'egyptian';
+
+$serveris = "localhost";
+$lietotajs = "grobina1_belovinceva";
+$parole = "U9R1@kvzL";
+$datubaze = "grobina1_belovinceva";
+
+
+$savienojums = mysqli_connect($serveris, $lietotajs, $parole, $datubaze);
+
+
+if (!$savienojums) {
+    die("Savienojuma kļūda: " . mysqli_connect_error());
+}
+
+
+mysqli_set_charset($savienojums, "utf8mb4");
+
+
+function iegutDatus($savienojums, $zem_tipa) {
+    $dati = [];
+    $sql = "SELECT virsraksti, iss_apraksts FROM eksamens_ieraksti WHERE zem_tipa = ? AND veids = 'Egiptes Mitologija' ORDER BY ieraksti_id";
+
+    $stmt = mysqli_prepare($savienojums, $sql);
+    if (!$stmt) {
+        die("Kļūda SQL pieprasījuma sagatavošanā: " . mysqli_error($savienojums));
+    }
+
+    mysqli_stmt_bind_param($stmt, "s", $zem_tipa);
+    mysqli_stmt_execute($stmt);
+    $rezultats = mysqli_stmt_get_result($stmt);
+
+    while ($row = mysqli_fetch_assoc($rezultats)) {
+        $dati[] = [
+            "nosaukums" => $row["virsraksti"],
+            "apraksts" => $row["iss_apraksts"]
+        ];
+    }
+
+    mysqli_stmt_close($stmt);
+    return $dati;
+}
+
+
+$galvenie_dievi = iegutDatus($savienojums, "Galvenie Dievi");
+$pecnaves_dzive = iegutDatus($savienojums, "Pecnaves Dzive");
+$svetie_simboli_un_rituali = iegutDatus($savienojums, "Svetie Simboli un Rituali");
+$mitiskas_butnes = iegutDatus($savienojums, "Mitiskas Butnes");
+
+mysqli_close($savienojums);
 ?>
+
 <!DOCTYPE html>
 <html lang="lv">
 <head>
@@ -26,14 +76,15 @@ $current_page = 'egyptian';
                     <div class="category">
                         <h3>Galvenie Dievi</h3>
                         <ul>
-                            <li>Ra - Saules dievs, radītājs</li>
-                            <li>Ozīriss - Mirušo valstības valdnieks</li>
-                            <li>Izīda - Maģijas un dzīvības dieve</li>
-                            <li>Hors - Debesu dievs, faraonu aizbildnis</li>
-                            <li>Anubis - Balzamēšanas un mirušo pavadonis</li>
-                            <li>Tots - Gudrības un rakstības dievs</li>
+                            <?php if (!empty($galvenie_dievi)): ?>
+                                <?php foreach ($galvenie_dievi as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="egyptian/gods.html" class="show-more-btn">
+                        <a  class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Ēģiptes Dieviem
                         </a>
                     </div>
@@ -41,14 +92,15 @@ $current_page = 'egyptian';
                     <div class="category">
                         <h3>Pēcnāves Dzīve</h3>
                         <ul>
-                            <li>Duat - Pazemes valstība</li>
-                            <li>Mirušo grāmata - Ceļvedis aizsaulē</li>
-                            <li>Sirds svēršana - Dvēseles tiesāšana</li>
-                            <li>Mūmifikācija - Ķermeņa saglabāšana</li>
-                            <li>Pasaules koks - Dzīvības un nāves cikls</li>
-                            <li>Amenti - Pazemes ceļš, caur kuru dvēseles ceļo uz mūžīgo atpūtu</li>
+                            <?php if (!empty($pecnaves_dzive)): ?>
+                                <?php foreach ($pecnaves_dzive as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="egyptian/afterlife.html" class="show-more-btn">
+                        <a class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Pēcnāves Dzīvi
                         </a>
                     </div>
@@ -56,14 +108,15 @@ $current_page = 'egyptian';
                     <div class="category">
                         <h3>Svētie Simboli un Rituāli</h3>
                         <ul>
-                            <li>Ankh - Mūžīgās dzīvības simbols</li>
-                            <li>Skarabejs - Atdzimšanas simbols</li>
-                            <li>Piramīdas - Faraonu kapavietas</li>
-                            <li>Nīlas plūdi - Dzīvības cikla atjaunošanās</li>
-                            <li>Hieroglifi - Svētie raksti</li>
-                            <li>Horusa acs - Aizsardzības un dziedināšanas simbols</li>
+                            <?php if (!empty($svetie_simboli_un_rituali)): ?>
+                                <?php foreach ($svetie_simboli_un_rituali as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="egyptian/symbols.html" class="show-more-btn">
+                        <a  class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Simboliem un Rituāliem
                         </a>
                     </div>
@@ -71,14 +124,15 @@ $current_page = 'egyptian';
                     <div class="category">
                         <h3>Mītiskās Būtnes</h3>
                         <ul>
-                            <li>Sfinksa - Noslēpumainais cilvēka-lauvas hibrīds</li>
-                            <li>Ammit - Dvēseļu rijējs ar krokodila, lauvas un nīlzirga daļām</li>
-                            <li>Bennu - Svētais uguns putns, Ra iemiesojums</li>
-                            <li>Apeps - Haosa čūska, mūžīgais Ra ienaidnieks</li>
-                            <li>Šai - Laimes un likteņa aizbildnis</li>
-                            <li>Tueris - Grūtnieču un bērnu aizsardzības dievība</li>
+                            <?php if (!empty($mitiskas_butnes)): ?>
+                                <?php foreach ($mitiskas_butnes as $butne): ?>
+                                    <li><?php echo htmlspecialchars($butne["nosaukums"]); ?></li>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <li>Nav pieejamu datu</li>
+                            <?php endif; ?>
                         </ul>
-                        <a href="egyptian/creatures.html" class="show-more-btn">
+                        <a  class="show-more-btn">
                             <i class="fas fa-arrow-right"></i> Uzzināt Vairāk par Mītiskajām Būtnēm
                         </a>
                     </div>
