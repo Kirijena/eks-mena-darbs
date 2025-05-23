@@ -14,7 +14,7 @@ $current_page = 'index';
 <body>
     <?php include 'includes/header.php'; ?>
 
-    <main class="content">
+    <!--<main class="content">
     <section class="hero-section">
         <div class="hero-content">
             <h1>Senās Teikas</h1>
@@ -99,7 +99,7 @@ $current_page = 'index';
                     <i class="fas fa-arrow-right"></i> Izpētīt
                 </a>
             </div>
-        </section>
+        </section> -->
 
     </main>
 

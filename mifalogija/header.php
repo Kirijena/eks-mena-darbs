@@ -68,7 +68,7 @@ mysqli_close($savienojums);
             </li>
             <li><a href="<?php echo $base_path; ?>search.php" <?php echo $current_page === 'search' ? 'class="active"' : ''; ?>>🔍 Meklēt</a></li>
             <li><a href="<?php echo $base_path; ?>about.php" <?php echo $current_page === 'about' ? 'class="active"' : ''; ?>>📜 Par Vietni</a></li>
-            <a href="login.php" class="profile-btn"><i class="fas fa-user"></i>Profile</a>
+            <a href="../login.php" class="profile-btn"><i class="fas fa-user"></i>Profile</a>
         </ul>
     </nav>
 </header>
