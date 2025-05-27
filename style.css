@@ -262,7 +262,6 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, #f4d5b0 0%, #e8b887 50%, #d4a373 100%);
     padding: 20px;
     position: relative;
 }

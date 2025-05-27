@@ -50,39 +50,49 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="css/admin.css">
 </head>
 <body>
-    <div class="admin-login-container">
-        <div class="admin-login-box">
-            <div class="admin-header">
-                <i class="fas fa-user-shield fa-3x"></i>
-                <h1>Admin Panel</h1>
+    <div class="auth-container">
+        <div class="auth-box">
+            <div class="auth-header">
+                <div class="logo">
+                    <i class="fas fa-scroll fa-3x"></i>
+                </div>
+                <h1>Admin daļa</h1>
             </div>
 
-            <?php if ($error): ?>
-                <div class="error-message"><?= htmlspecialchars($error) ?></div>
-            <?php endif; ?>
+            <div class="auth-content">
+                <?php if (isset($error)): ?>
+                    <p class="error-message"><?= htmlspecialchars($error) ?></p>
+                <?php endif; ?>
+                <?php if ($success): ?>
+                    <p class="success-message"><?= htmlspecialchars($success) ?></p>
+                <?php endif; ?>
 
-            <form class="admin-login-form" method="POST">
-                <div class="form-group">
-                    <div class="input-with-icon">
-                        <i class="fas fa-user"></i>
-                        <input type="text" name="username" placeholder="Lietotājvārds" required>
+                <form id="loginForm" class="auth-form <?php echo $activeForm === 'login' ? 'active' : ''; ?>" action="login.php" method="POST">
+                    <div class="form-group">
+                        <div class="input-with-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" name="username" placeholder="Lietotājvārds" required>
+                        </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" name="password" placeholder="Parole" required>
+                    <div class="form-group">
+                        <div class="input-with-icon">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" name="password" placeholder="Parole" required>
+                        </div>
                     </div>
-                </div>
-                <button type="submit" class="admin-submit-btn">
-                    <i class="fas fa-sign-in-alt"></i> Pieteikties
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-door-open"></i> Ieej Valstībā
+                    </button>
+                </form>
+                
+                <button onclick="history.back()" class="back-btn">
+                    <i class="fas fa-arrow-left"></i> Atpakaļ
                 </button>
-            </form>
-            
-            <a href="../index.php" class="back-link">
-                <i class="fas fa-arrow-left"></i> Atpakaļ uz mājas lapu
-            </a>
+            </div>
         </div>
     </div>
+
+    <script src="script.js"></script>
+    <script src="js/auth.js"></script>
 </body>
 </html>

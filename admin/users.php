@@ -70,11 +70,11 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
 <body>
     <div class="admin-container">
         <div class="admin-header">
-            <h1><i class="fas fa-users-cog"></i> Lietotāju Pārvaldība</h1>
+            <h1><i class="fas fa-users-cog"></i> Lietotāju Pārvaldība &nbsp</h1>
             <div class="admin-actions">
-            <a href="ieraksts.php" class="admin-btn">
-            Ieraksti
-        </a>
+            <a href="ieraksts.php" class="admin-btn">Ieraksti</a>
+            <a href="type.php" class="admin-btn">Type</a>
+            <a href="kategoriju.php" class="admin-btn">Kategoriju</a>
                 <button onclick="showCreateUserForm()" class="admin-btn">
                     <i class="fas fa-user-plus"></i> Jauns Lietotājs
                 </button>
