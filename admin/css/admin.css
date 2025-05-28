@@ -132,7 +132,7 @@ body {
 }
 
 /* Status Select */
-.status-select {
+.status-select, .role-select {
     padding: 0.5rem;
     border-radius: 5px;
     border: 1px solid var(--border-color);
@@ -469,6 +469,16 @@ button:active {
     margin-bottom: 20px;
     border-left: 4px solid #28a745;
     font-size: 0.9rem;
+}
+
+.message {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border: 1px solid #f5c6cb;
+    border-radius: 5px;
+    margin: 10px 0;
+    display: none;
 }
 
 .modal-content form input {

@@ -18,10 +18,11 @@ if (isset($_POST['delete_category'])) {
 // Create Category
 if (isset($_POST['create_category'])) {
     $name = trim($_POST['name']);
-    $description = trim($_POST['description']);
-    $stmt = $savienojums->prepare("INSERT INTO eksamens_categories (Nosaukums, description) VALUES (?, ?)");
-    $stmt->bind_param("ss", $name, $description);
-    $stmt->execute();
+    if (!empty($name)) {
+        $stmt = $savienojums->prepare("INSERT INTO eksamens_categories (Nosaukums) VALUES (?)");
+        $stmt->bind_param("s", $name);
+        $stmt->execute();
+    }
 }
 
 // Update Category
@@ -104,9 +105,6 @@ $result = $savienojums->query("SELECT * FROM eksamens_categories ORDER BY id DES
             <form method="POST" class="create-category-form">
                 <div class="form-group">
                     <input type="text" name="name" placeholder="Nosaukums" required>
-                </div>
-                <div class="form-group">
-                    <textarea name="description" placeholder="Apraksts"></textarea>
                 </div>
                 <div class="form-actions">
                     <button type="submit" name="create_category" class="submit-btn">

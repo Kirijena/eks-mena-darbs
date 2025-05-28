@@ -14,7 +14,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $password = trim($_POST["password"]);
 
     if (!empty($username) && !empty($password)) {
-        $stmt = $savienojums->prepare("SELECT lietotajs_id, username, password FROM eksamens_lietotajs WHERE username = ? AND approved = 1");
+        $stmt = $savienojums->prepare("SELECT lietotajs_id, username, password, tiesibas FROM eksamens_lietotajs WHERE username = ? AND approved = 1");
         $stmt->bind_param("s", $username);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -22,15 +22,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($result->num_rows == 1) {
             $user = $result->fetch_assoc();
             if (password_verify($password, $user["password"])) {
-                $_SESSION["admin_id"] = $user["lietotajs_id"];
-                $_SESSION["admin_username"] = $user["username"];
-                header("Location: users.php");
-                exit();
+                // Проверяем права пользователя
+                if ($user["tiesibas"] === 'administrators' || $user["tiesibas"] === 'moderators') {
+                    $_SESSION["admin_id"] = $user["lietotajs_id"];
+                    $_SESSION["admin_username"] = $user["username"];
+                    header("Location: users.php");
+                    exit();
+                } else {
+                    $error = "Nepietiekamas tiesības.";
+                }
             } else {
                 $error = "Nepareizs lietotājvārds vai parole.";
             }
         } else {
-            $error = "Nav atrasts apstiprināts lietotājs ar šādu lietotājvārdu.";
+            $error = "Nav atrasts apstiprināts lietotājs ar šādu datus.";
         }
         $stmt->close();
     } else {
@@ -63,11 +68,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <?php if (isset($error)): ?>
                     <p class="error-message"><?= htmlspecialchars($error) ?></p>
                 <?php endif; ?>
-                <?php if ($success): ?>
-                    <p class="success-message"><?= htmlspecialchars($success) ?></p>
-                <?php endif; ?>
 
-                <form id="loginForm" class="auth-form <?php echo $activeForm === 'login' ? 'active' : ''; ?>" action="login.php" method="POST">
+                <form id="loginForm" class="auth-form" action="login.php" method="POST">
                     <div class="form-group">
                         <div class="input-with-icon">
                             <i class="fas fa-user"></i>
