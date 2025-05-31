@@ -27,6 +27,32 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
+    document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('searchInput');
+    const suggestionsBox = document.getElementById('suggestionsBox');
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length > 0) {
+            fetch(`search_suggestions.php?q=${encodeURIComponent(query)}`)
+                .then(response => response.text())
+                .then(data => {
+                    suggestionsBox.innerHTML = data;
+                    suggestionsBox.style.display = 'block';
+                });
+        } else {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+
+    // При клике вне поля скрываем подсказки
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
+            suggestionsBox.style.display = 'none';
+        }
+    });
+});
+
     // Form validation
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
