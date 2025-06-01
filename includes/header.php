@@ -54,10 +54,6 @@ mysqli_close($savienojums);
             <li class="dropdown">
                 <button class="dropbtn">🌍 Mitoloģijas <i class="fas fa-caret-down"></i></button>
                 <div class="dropdown-content">
-                    <a href="<?php echo $base_path; ?>mifalogija/index.php"
-                       <?php echo $current_page === 'mythologies' ? 'class="active"' : ''; ?>>
-                       Visas Mitoloģijas
-                    </a>
                     <?php foreach ($mitologijas as $mitologija): ?>
                         <a href="<?php echo $base_path; ?>mifalogija/template.php?mitologija=<?php echo urlencode($mitologija); ?>"
                            <?php echo $current_page === strtolower(str_replace(' ', '_', $mitologija)) ? 'class="active"' : ''; ?>>
@@ -67,7 +63,6 @@ mysqli_close($savienojums);
                 </div>
             </li>
             <li><a href="<?php echo $base_path; ?>search.php" <?php echo $current_page === 'search' ? 'class="active"' : ''; ?>>🔍 Meklēt</a></li>
-            <li><a href="<?php echo $base_path; ?>about.php" <?php echo $current_page === 'about' ? 'class="active"' : ''; ?>>📜 Par Vietni</a></li>
             <a href="login.php" class="profile-btn"><i class="fas fa-user"></i>Profile</a>
         </ul>
     </nav>

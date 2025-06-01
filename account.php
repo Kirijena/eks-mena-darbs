@@ -41,6 +41,7 @@ $current_page = 'account';
             <p class="user-username">@<?php echo htmlspecialchars($user['username']); ?></p>
             <a href="logout.php" class="logout-btn">
                 <i class="fas fa-sign-out-alt"></i> Iziet no konta
+                <a class="back-link" onclick="history.back()">← Atpakaļ</a>
             </a>
         </div>
 
