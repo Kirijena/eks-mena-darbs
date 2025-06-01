@@ -2,13 +2,11 @@
 session_start();
 require 'includes/connect_db.php';
 
-// Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit();
 }
 
-// Fetch user data
 $user_id = $_SESSION['user_id'];
 $stmt = $savienojums->prepare("SELECT username, name, lastname FROM eksamens_lietotajs WHERE lietotajs_id = ?");
 $stmt->bind_param("i", $user_id);
@@ -17,6 +15,22 @@ $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 $current_page = 'account';
+
+// Apstrāde: noņemt patīk
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['remove_like_entry_id'])) {
+    $entry_id = (int)$_POST['remove_like_entry_id'];
+    $remove_stmt = $savienojums->prepare("DELETE FROM liked_entries WHERE user_id = ? AND entry_id = ?");
+    $remove_stmt->bind_param("ii", $user_id, $entry_id);
+    $remove_stmt->execute();
+    header("Location: account.php");
+    exit();
+}
+
+// Iegūstam lietotāja saglabātos ierakstus
+$liked_stmt = $savienojums->prepare("SELECT e.id, e.title FROM eksamens_entries e JOIN liked_entries l ON e.id = l.entry_id WHERE l.user_id = ?");
+$liked_stmt->bind_param("i", $user_id);
+$liked_stmt->execute();
+$liked_result = $liked_stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -31,29 +45,43 @@ $current_page = 'account';
 </head>
 <body>
 
-
-    <main class="account-container">
-        <div class="profile-section">
-            <div class="profile-photo">
-                <i class="fas fa-user"></i>
-            </div>
-            <h1 class="user-name"><?php echo htmlspecialchars($user['name'] . ' ' . $user['lastname']); ?></h1>
-            <p class="user-username">@<?php echo htmlspecialchars($user['username']); ?></p>
-            <a href="logout.php" class="logout-btn">
-                <i class="fas fa-sign-out-alt"></i> Iziet no konta
-                <a class="back-link" onclick="history.back()">← Atpakaļ</a>
-            </a>
+<main class="account-container">
+    <div class="profile-section">
+        <div class="profile-photo">
+            <i class="fas fa-user"></i>
         </div>
+        <h1 class="user-name"><?php echo htmlspecialchars($user['name'] . ' ' . $user['lastname']); ?></h1>
+        <p class="user-username">@<?php echo htmlspecialchars($user['username']); ?></p>
+        <a href="logout.php" class="logout-btn">
+            <i class="fas fa-sign-out-alt"></i> Iziet no konta
+            <a class="back-link" onclick="history.back()">← Atpakaļ</a>
+        </a>
+    </div>
 
-        <div class="saved-entries">
-            <h2>Jūsu saglabātie ieraksti</h2>
-            <div class="entries-area">
+    <div class="saved-entries">
+        <h2>Jūsu saglabātie ieraksti</h2>
+        <div class="entries-area">
+            <?php if ($liked_result->num_rows > 0): ?>
+                <ul>
+                    <?php while ($entry = $liked_result->fetch_assoc()): ?>
+                        <li style="margin-bottom: 10px;">
+                            <a href="mifalogija/entry.php?id=<?php echo $entry['id']; ?>">
+                                <?php echo htmlspecialchars($entry['title']); ?>
+                            </a>
+                            <form method="post" style="display:inline-block; margin-left: 10px;">
+                                <input type="hidden" name="remove_like_entry_id" value="<?php echo $entry['id']; ?>">
+                                <button type="submit" style="color: red; border: none; background: none; cursor: pointer;">✖</button>
+                            </form>
+                        </li>
+                    <?php endwhile; ?>
+                </ul>
+            <?php else: ?>
                 <p>Ieraksti nav atrasti</p>
-            </div>
+            <?php endif; ?>
         </div>
-    </main>
+    </div>
+</main>
 
-
-    <script src="js/script.js"></script>
+<script src="js/script.js"></script>
 </body>
-</html> 
+</html>
