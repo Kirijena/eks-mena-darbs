@@ -60,8 +60,6 @@ if (!empty($selected_mythology)) {
 // Get records by type_id, grouped by category_id
 $grouped_records = [];
 if (!empty($selected_type_id)) {
-    // Assuming there's another table with records that have type_id, category_id, and title
-    // You might need to adjust the table name and column names based on your actual database structure
     $sql_records = "SELECT id, category_id, title FROM eksamens_entries WHERE type_id = ? ORDER BY category_id, title";
     $stmt_records = mysqli_prepare($savienojums, $sql_records);
     mysqli_stmt_bind_param($stmt_records, "i", $selected_type_id);
@@ -78,29 +76,25 @@ if (!empty($selected_type_id)) {
     mysqli_stmt_close($stmt_records);
 }
 
-// Get category names for better display
+// Get category names for better display - CORRECTED VERSION
 $category_names = [];
 if (!empty($grouped_records)) {
     $category_ids = array_keys($grouped_records);
     if (!empty($category_ids)) {
-        $placeholders = str_repeat('?,', count($category_ids) - 1) . '?';
-        $sql_categories = "SELECT id, Nosaukums FROM eksamens_categories WHERE id IN ($placeholders)";
-        $stmt_categories = mysqli_prepare($savienojums, $sql_categories);
+        // Use simple query instead of prepared statement for better reliability
+        $category_ids_str = implode(',', array_map('intval', $category_ids));
+        $sql_categories = "SELECT id_kat, Kategorija FROM eksamens_kategorija WHERE id_kat IN ($category_ids_str)";
+        $result_categories = mysqli_query($savienojums, $sql_categories);
         
-        // Create types string for bind_param
-        $types = str_repeat('i', count($category_ids));
-        mysqli_stmt_bind_param($stmt_categories, $types, ...$category_ids);
-        mysqli_stmt_execute($stmt_categories);
-        $categories_result = mysqli_stmt_get_result($stmt_categories);
-        
-        while ($row = mysqli_fetch_assoc($categories_result)) {
-            $category_names[$row['id']] = $row['Nosaukums'];
+        if ($result_categories) {
+            while ($row = mysqli_fetch_assoc($result_categories)) {
+                $category_names[$row['id_kat']] = $row['Kategorija'];
+            }
         }
-        mysqli_stmt_close($stmt_categories);
     }
 }
 
-mysqli_close($savienojums);
+// DON'T CLOSE DATABASE CONNECTION YET - we'll close it at the end
 ?>
 <!DOCTYPE html>
 <html lang="lv">
@@ -406,11 +400,18 @@ mysqli_close($savienojums);
             border-left: 4px solid var(--color-secondary);
         }
 
+        .category-group .category-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
         .category-group h3 {
             color: var(--color-primary);
             font-size: 1.6rem;
             font-weight: 700;
-            margin-bottom: 20px;
+            margin: 0;
             font-family: 'Cinzel', serif;
             position: relative;
             padding-bottom: 10px;
@@ -427,6 +428,27 @@ mysqli_close($savienojums);
             border-radius: 1px;
         }
 
+        .view-all-btn {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .view-all-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(146, 64, 14, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
         .records-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -441,6 +463,10 @@ mysqli_close($savienojums);
             transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+            display: block;
         }
 
         .record-item::before {
@@ -458,6 +484,8 @@ mysqli_close($savienojums);
             background: rgba(146, 64, 14, 0.1);
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
+            text-decoration: none;
+            color: inherit;
         }
 
         .record-item:hover::before {
@@ -561,6 +589,12 @@ mysqli_close($savienojums);
             .records-list {
                 grid-template-columns: 1fr;
             }
+
+            .category-group .category-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
         }
 
         @media (max-width: 480px) {
@@ -616,36 +650,6 @@ mysqli_close($savienojums);
                         <?php echo htmlspecialchars($selected_mythology); ?>
                     </h2>
                     
-                    <?php if (!empty($mythology_content)): ?>
-                        <div class="mythology-grid">
-                            <?php foreach ($mythology_content as $item): ?>
-                                <div class="mythology-item">
-                                    <div class="item-id">
-                                        <i class="fas fa-hashtag"></i>
-                                        ID: <?php echo htmlspecialchars($item['id']); ?>
-                                    </div>
-                                    
-                                    <h3>
-                                        <i class="fas fa-gem"></i>
-                                        <?php echo htmlspecialchars($item['Nosaukums']); ?>
-                                    </h3>
-                                    
-                                    <?php
-                                    // Display all other fields from the database record
-                                    foreach ($item as $key => $value) {
-                                        if ($key !== 'id' && $key !== 'Nosaukums' && !empty($value)) {
-                                            echo '<div class="field-group">';
-                                            echo '<span class="field-label">' . htmlspecialchars($key) . ':</span>';
-                                            echo '<span class="field-value">' . htmlspecialchars($value) . '</span>';
-                                            echo '</div>';
-                                        }
-                                    }
-                                    ?>
-                                </div>
-                            <?php endforeach; ?>
-                        </div>
-                    <?php endif; ?>
-                    
                     <!-- Records grouped by category -->
                     <?php if (!empty($grouped_records)): ?>
                         <hr class="section-divider">
@@ -656,21 +660,28 @@ mysqli_close($savienojums);
                         
                         <?php foreach ($grouped_records as $category_id => $records): ?>
                             <div class="category-group">
-                                <h3>
-                                    <i class="fas fa-folder"></i>
-                                    <?php echo isset($category_names[$category_id]) ? htmlspecialchars($category_names[$category_id]) : "Kategorija #$category_id"; ?>
-                                </h3>
+                                <div class="category-header">
+                                    <h3>
+                                        <i class="fas fa-folder"></i>
+                                        <?php echo isset($category_names[$category_id]) ? htmlspecialchars($category_names[$category_id]) : "Kategorija #$category_id"; ?>
+                                    </h3>
+                                    <a href="<?php echo $base_path; ?>mifalogija/category_view.php?category_id=<?php echo $category_id; ?>&mitologija=<?php echo urlencode($selected_mythology); ?>" class="view-all-btn">
+                                        <i class="fas fa-eye"></i>
+                                        Skatīt visus
+                                    </a>
+                                </div>
                                 
                                 <div class="records-list">
-                                    <?php foreach ($records as $record): ?>
-                                        <div class="record-item">
+                                    <?php 
+                                    // Limit to maximum 3 records per category
+                                    $limited_records = array_slice($records, 0, 3);
+                                    foreach ($limited_records as $record): 
+                                    ?>
+                                        <a href="<?php echo $base_path; ?>mifalogija/entry.php?id=<?php echo $record['id']; ?>" class="record-item">
                                             <div class="record-title">
                                                 <?php echo htmlspecialchars($record['title']); ?>
                                             </div>
-                                            <div class="record-id">
-                                                ID: <?php echo htmlspecialchars($record['id']); ?>
-                                            </div>
-                                        </div>
+                                        </a>
                                     <?php endforeach; ?>
                                 </div>
                             </div>
@@ -695,5 +706,10 @@ mysqli_close($savienojums);
             </div>
         </div>
     </div>
+
+    <?php
+    // Close database connection at the very end
+    mysqli_close($savienojums);
+    ?>
 </body>
 </html>

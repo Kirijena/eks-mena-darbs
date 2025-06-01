@@ -75,10 +75,11 @@ if ($row = mysqli_fetch_assoc($result)) {
             --color-warning: #d97706;
         }
         body {
-            font-family: Arial, sans-serif;
-            background-color: var(--color-background);
-            margin: 0;
-            padding: 20px;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(to bottom, #fee0c7, #e9aa75);
+            min-height: 100vh;
+            color: var(--color-text);
+            padding-top: 80px;
         }
         .entry-container {
             max-width: 1000px;
@@ -105,23 +106,37 @@ if ($row = mysqli_fetch_assoc($result)) {
             margin-bottom: 30px;
         }
         .entry-field {
-            background: var(--color-background);
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
+            border-left: 4px solid var(--color-secondary);
+            font-size: 1.2rem;
         }
         .entry-field .label {
             color: var(--color-text-light);
             font-weight: bold;
             margin-bottom: 5px;
+            font-size: 1.5rem;
         }
         .entry-description {
-            background: var(--color-background);
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-            white-space: pre-wrap;
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
+            border-left: 4px solid var(--color-secondary);
+            font-size: 1.2rem;
         }
+
+        .entry-description .label {
+            color: var(--color-text-light);
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 1.5rem;
+        }
+
         .back-link {
             display: inline-block;
             margin-top: 20px;
@@ -149,29 +164,29 @@ if ($row = mysqli_fetch_assoc($result)) {
     </div>
     <div class="entry-details">
         <div class="entry-field">
-            <div class="label">Type</div>
+            <div class="label">Tips</div>
             <div><?php echo htmlspecialchars($type_nosaukums); ?></div>
         </div>
         <div class="entry-field">
-            <div class="label">Category</div>
+            <div class="label">Kategorija</div>
             <div><?php echo htmlspecialchars($category_nosaukums); ?></div> <!-- Показываем название категории -->
         </div>
         <div class="entry-field">
-            <div class="label">Country</div>
+            <div class="label">Valsts</div>
             <div><?php echo htmlspecialchars($row['country']); ?></div>
         </div>
         <div class="entry-field">
-            <div class="label">First Mention Date</div>
+            <div class="label">Pirmās pieminēšanas datums</div>
             <div><?php echo htmlspecialchars($row['first_mention_date']); ?></div>
         </div>
     </div>
     <div class="entry-description">
-        <div class="label">Description</div>
+        <div class="label">Apraksts:</div>
         <p><?php echo nl2br(htmlspecialchars($row['description'])); ?></p>
-        <div class="label" style="margin-top: 15px;">Detailed Description</div>
+        <div class="label" style="margin-top: 15px;">Detalizēts apraksts:</div>
         <p><?php echo nl2br(htmlspecialchars($row['description_text'])); ?></p>
     </div>
-    <a class="back-link" href="all_entries.php">← Atpakaļ</a>
+    <a class="back-link" onclick="history.back()">← Atpakaļ</a>
 </div>
 </body>
 </html>
