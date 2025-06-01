@@ -179,6 +179,15 @@ if (!empty($grouped_records)) {
             font-weight: 600;
             transition: color 0.3s;
         }
+        
+        .profile-btn{
+            color: var(--color-text-light);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+            padding: 1rem;
+        }
+
 
         .back-link:hover {
             color: var(--color-primary);
@@ -544,6 +553,7 @@ if (!empty($grouped_records)) {
             opacity: 0.3;
         }
 
+
         /* Responsive Design */
         @media (max-width: 768px) {
             body {
@@ -620,6 +630,9 @@ if (!empty($grouped_records)) {
             <a href="<?php echo $base_path; ?>index.php">Mitoloģijas</a>
         </div>
         <nav>
+            <a href="../login.php" class="profile-btn">
+                <i class="fas fa-user"></i>Profile
+            </a>
             <a href="<?php echo $base_path; ?>index.php" class="back-link">
                 <i class="fas fa-arrow-left"></i> Atpakaļ uz sākumu
             </a>

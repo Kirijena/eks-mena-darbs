@@ -54,8 +54,8 @@ $liked_result = $liked_stmt->get_result();
         <p class="user-username">@<?php echo htmlspecialchars($user['username']); ?></p>
         <a href="logout.php" class="logout-btn">
             <i class="fas fa-sign-out-alt"></i> Iziet no konta
-            <a class="back-link" onclick="history.back()">← Atpakaļ</a>
         </a>
+        <a class="back-link" onclick="history.back()">← Atpakaļ</a>
     </div>
 
     <div class="saved-entries">
