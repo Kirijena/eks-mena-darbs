@@ -39,10 +39,10 @@ if ($category_id > 0) {
     mysqli_stmt_close($stmt_cat);
 }
 
-// Get all records for this category
+// Get all records for this category - ONLY PUBLISHED RECORDS (published = 1)
 $records = [];
 if ($category_id > 0) {
-    $sql_records = "SELECT id, title, description, country, first_mention_date FROM eksamens_entries WHERE category_id = ? ORDER BY title";
+    $sql_records = "SELECT id, description, country, first_mention_date FROM eksamens_entries WHERE category_id = ? AND published = 1 ORDER BY description";
     $stmt_records = mysqli_prepare($savienojums, $sql_records);
     mysqli_stmt_bind_param($stmt_records, "i", $category_id);
     mysqli_stmt_execute($stmt_records);
@@ -392,15 +392,8 @@ mysqli_close($savienojums);
                     <?php foreach ($records as $record): ?>
                         <div class="record-card">
                             <h3 class="record-title">
-                                <?php echo htmlspecialchars($record['title']); ?>
+                                <?php echo htmlspecialchars($record['description']); ?>
                             </h3>
-                            
-                            <?php if (!empty($record['description'])): ?>
-                                <div class="record-field">
-                                    <span class="field-label">Apraksts:</span>
-                                    <span class="field-value"><?php echo htmlspecialchars($record['description']); ?></span>
-                                </div>
-                            <?php endif; ?>
                             
                             <?php if (!empty($record['country'])): ?>
                                 <div class="record-field">
@@ -429,7 +422,7 @@ mysqli_close($savienojums);
                 <div class="no-content">
                     <i class="fas fa-search"></i>
                     <h3>Nav atrasti ieraksti</h3>
-                    <p>Šajā kategorijā pašlaik nav pieejami ieraksti.</p>
+                    <p>Šajā kategorijā pašlaik nav pieejami publicēti ieraksti.</p>
                 </div>
             <?php endif; ?>
 

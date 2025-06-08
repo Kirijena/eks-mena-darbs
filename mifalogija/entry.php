@@ -46,7 +46,8 @@ if ($is_logged_in && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['like
     exit();
 }
 
-$stmt = mysqli_prepare($savienojums, "SELECT id, title, type_id, category_id, description, country, first_mention_date, description_text, published FROM eksamens_entries WHERE id = ?");
+// Modified query to only show published entries (published = 1)
+$stmt = mysqli_prepare($savienojums, "SELECT id, title, type_id, category_id, description, country, first_mention_date, description_text, published FROM eksamens_entries WHERE id = ? AND published = 1");
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
@@ -241,7 +242,7 @@ if ($row = mysqli_fetch_assoc($result)) {
 
 <?php
 } else {
-    echo "Ieraksts ar šo ID nav atrasts.";
+    echo "Ieraksts ar šo ID nav atrasts vai nav publicēts.";
 }
 
 mysqli_stmt_close($stmt);

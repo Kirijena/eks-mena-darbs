@@ -1,6 +1,8 @@
 <?php
 session_start();
 $current_page = 'search';
+
+
 ?>
 <!DOCTYPE html>
 <html lang="lv">

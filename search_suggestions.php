@@ -12,7 +12,7 @@ if (!$savienojums) {
 $query = isset($_GET['q']) ? trim($_GET['q']) : '';
 
 if ($query !== '') {
-    $stmt = mysqli_prepare($savienojums, "SELECT id, title FROM eksamens_entries WHERE title LIKE CONCAT('%', ?, '%') LIMIT 10");
+    $stmt = mysqli_prepare($savienojums, "SELECT id, title FROM eksamens_entries WHERE published = 1 AND title LIKE CONCAT('%', ?, '%') LIMIT 10");
     mysqli_stmt_bind_param($stmt, "s", $query);
     mysqli_stmt_execute($stmt);
     $result = mysqli_stmt_get_result($stmt);

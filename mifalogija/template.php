@@ -57,10 +57,10 @@ if (!empty($selected_mythology)) {
     mysqli_stmt_close($stmt);
 }
 
-// Get records by type_id, grouped by category_id
+// Get records by type_id, grouped by category_id - ONLY PUBLISHED RECORDS
 $grouped_records = [];
 if (!empty($selected_type_id)) {
-    $sql_records = "SELECT id, category_id, title FROM eksamens_entries WHERE type_id = ? ORDER BY category_id, title";
+    $sql_records = "SELECT id, category_id, title FROM eksamens_entries WHERE type_id = ? AND published = 1 ORDER BY category_id, title";
     $stmt_records = mysqli_prepare($savienojums, $sql_records);
     mysqli_stmt_bind_param($stmt_records, "i", $selected_type_id);
     mysqli_stmt_execute($stmt_records);

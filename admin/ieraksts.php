@@ -21,6 +21,7 @@ if (isset($_POST['delete_record'])) {
 if (isset($_POST['create_record'])) {
     $type_id = (int)$_POST['type_id'];
     $category_id = (int)$_POST['category_id'];
+    $title = trim($_POST['title']);
     $description = trim($_POST['description']);
     $country = trim($_POST['country']);
     $first_mention_date = trim($_POST['first_mention_date']);
@@ -28,8 +29,8 @@ if (isset($_POST['create_record'])) {
     $images = trim($_POST['images']);
     $published = isset($_POST['published']) ? 1 : 0;
 
-    $stmt = $savienojums->prepare("INSERT INTO eksamens_entries (type_id, category_id, description, country, first_mention_date, description_text, images, published, created_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-    $stmt->bind_param("iisssssi", $type_id, $category_id, $description, $country, $first_mention_date, $description_text, $images, $published);
+    $stmt = $savienojums->prepare("INSERT INTO eksamens_entries (type_id, category_id, title, description, country, first_mention_date, description_text, images, published, created_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+    $stmt->bind_param("iisssssi", $type_id, $category_id, $title, $description, $country, $first_mention_date, $description_text, $images, $published);
     $stmt->execute();
     $stmt->close();
 }
@@ -38,6 +39,7 @@ if (isset($_POST['update_record'])) {
     $record_id = (int)$_POST['record_id'];
     $type_id = (int)$_POST['type_id'];
     $category_id = (int)$_POST['category_id'];
+    $title = trim($_POST['title']);
     $description = trim($_POST['description']);
     $country = trim($_POST['country']);
     $first_mention_date = trim($_POST['first_mention_date']);
@@ -45,8 +47,8 @@ if (isset($_POST['update_record'])) {
     $images = trim($_POST['images']);
     $published = isset($_POST['published']) ? 1 : 0;
 
-    $stmt = $savienojums->prepare("UPDATE eksamens_entries SET type_id = ?, category_id = ?, description = ?, country = ?, first_mention_date = ?, description_text = ?, images = ?, published = ? WHERE id = ?");
-    $stmt->bind_param("iisssssii", $type_id, $category_id, $description, $country, $first_mention_date, $description_text, $images, $published, $record_id);
+    $stmt = $savienojums->prepare("UPDATE eksamens_entries SET type_id = ?, category_id = ?, title = ?, description = ?, country = ?, first_mention_date = ?, description_text = ?, images = ?, published = ? WHERE id = ?");
+    $stmt->bind_param("iissssssii", $type_id, $category_id, $title, $description, $country, $first_mention_date, $description_text, $images, $published, $record_id);
     $stmt->execute();
     $stmt->close();
 }
@@ -111,6 +113,7 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
                         <th>ID</th>
                         <th>Type</th>
                         <th>Kategorija</th>
+                        <th>Nosaukums</th>
                         <th>Apraksts</th>
                         <th>Valsts</th>
                         <th>Pirmā pieminējuma datums</th>
@@ -131,6 +134,7 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
                         <td>
                             <span class="category-id-name"><?= htmlspecialchars($record['category_id_name'] ?? 'Nav atrasts') ?></span>
                         </td>
+                        <td><?= htmlspecialchars($record['title'] ?? '') ?></td>
                         <td><?= htmlspecialchars(substr($record['description'], 0, 50)) ?>...</td>
                         <td><?= htmlspecialchars($record['country']) ?></td>
                         <td><?= htmlspecialchars($record['first_mention_date']) ?></td>
@@ -198,6 +202,11 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
                             <option value="<?= $cat_id['id_kat'] ?>"><?= htmlspecialchars($cat_id['Kategorija']) ?></option>
                         <?php endforeach; ?>
                     </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="title">Nosaukums</label>
+                    <input type="text" name="title" placeholder="Nosaukums" required accept-charset="UTF-8">
                 </div>
 
                 <div class="form-group">
@@ -319,6 +328,7 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
         // Iestatīt vērtības formas laukos
         form.querySelector('select[name="type_id"]').value = record.type_id;
         form.querySelector('select[name="category_id"]').value = record.category_id;
+        form.querySelector('input[name="title"]').value = record.title || '';
         form.querySelector('input[name="description"]').value = record.description;
         form.querySelector('input[name="country"]').value = record.country;
         form.querySelector('input[name="first_mention_date"]').value = record.first_mention_date;
