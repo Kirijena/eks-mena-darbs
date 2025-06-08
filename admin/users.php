@@ -53,29 +53,39 @@ if (isset($_POST['update_tiesibas'])) {
 }
 
 if (isset($_POST['create_user'])) {
-    $username = trim($_POST['username']);
-    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    $name = trim($_POST['name']);
-    $lastname = trim($_POST['lastname']);
-    $email = trim($_POST['email']);
-    $approved = isset($_POST['approved']) ? 1 : 0;
-    $tiesibas = 'lietotajs'; // Новые пользователи по умолчанию с правами lietotajs
-    $stmt = $savienojums->prepare("INSERT INTO eksamens_lietotajs (username, password, name, lastname, email, approved, tiesibas) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssssis", $username, $password, $name, $lastname, $email, $approved, $tiesibas);
-    $stmt->execute();
+    if ($is_admin) {
+        $username = trim($_POST['username']);
+        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        $name = trim($_POST['name']);
+        $lastname = trim($_POST['lastname']);
+        $email = trim($_POST['email']);
+        $approved = isset($_POST['approved']) ? 1 : 0;
+        $tiesibas = 'lietotajs'; // Новые пользователи по умолчанию с правами lietotajs
+        $stmt = $savienojums->prepare("INSERT INTO eksamens_lietotajs (username, password, name, lastname, email, approved, tiesibas) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssssis", $username, $password, $name, $lastname, $email, $approved, $tiesibas);
+        $stmt->execute();
+        $message = 'Lietotājs veiksmīgi izveidots!';
+    } else {
+        $message = 'Jums nav tiesību izveidot jaunu lietotāju!';
+    }
 }
 
 if (isset($_POST['update_user_details'])) {
-    $user_id = (int)$_POST['user_id'];
-    $username = trim($_POST['username']);
-    $name = trim($_POST['name']);
-    $lastname = trim($_POST['lastname']);
-    $email = trim($_POST['email']);
-    $approved = isset($_POST['approved']) ? 1 : 0;
+    if ($is_admin) {
+        $user_id = (int)$_POST['user_id'];
+        $username = trim($_POST['username']);
+        $name = trim($_POST['name']);
+        $lastname = trim($_POST['lastname']);
+        $email = trim($_POST['email']);
+        $approved = isset($_POST['approved']) ? 1 : 0;
 
-    $stmt = $savienojums->prepare("UPDATE eksamens_lietotajs SET username = ?, name = ?, lastname = ?, email = ?, approved = ? WHERE lietotajs_id = ?");
-    $stmt->bind_param("ssssii", $username, $name, $lastname, $email, $approved, $user_id);
-    $stmt->execute();
+        $stmt = $savienojums->prepare("UPDATE eksamens_lietotajs SET username = ?, name = ?, lastname = ?, email = ?, approved = ? WHERE lietotajs_id = ?");
+        $stmt->bind_param("ssssii", $username, $name, $lastname, $email, $approved, $user_id);
+        $stmt->execute();
+        $message = 'Lietotāja dati veiksmīgi atjaunināti!';
+    } else {
+        $message = 'Jums nav tiesību rediģēt lietotāju!';
+    }
 }
 
 $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietotajs_id DESC");
@@ -99,9 +109,11 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
                 <a href="ieraksts.php" class="admin-btn">Ieraksti</a>
                 <a href="type.php" class="admin-btn">Type</a>
                 <a href="kategoriju.php" class="admin-btn">Kategoriju</a>
+                <?php if ($is_admin): ?>
                 <button onclick="showCreateUserForm()" class="admin-btn">
                     <i class="fas fa-user-plus"></i> Jauns Lietotājs
                 </button>
+                <?php endif; ?>
                 <a href="logout.php" class="admin-btn logout">
                     <i class="fas fa-sign-out-alt"></i> Iziet
                 </a>
@@ -135,7 +147,7 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
                         <td>
                             <form method="POST" class="inline-form">
                                 <input type="hidden" name="user_id" value="<?= $user['lietotajs_id'] ?>">
-                                <select name="approved" onchange="this.form.submit()" class="status-select">
+                                <select name="approved" onchange="this.form.submit()" class="status-select" <?= !$is_admin ? 'disabled' : '' ?>>
                                     <option value="0" <?= !$user['approved'] ? 'selected' : '' ?>>Neapstiprināts</option>
                                     <option value="1" <?= $user['approved'] ? 'selected' : '' ?>>Apstiprināts</option>
                                 </select>
@@ -145,7 +157,7 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
                         <td>
                             <form method="POST" class="inline-form">
                                 <input type="hidden" name="user_id" value="<?= $user['lietotajs_id'] ?>">
-                                <select name="tiesibas" onchange="this.form.submit()" class="role-select">
+                                <select name="tiesibas" onchange="this.form.submit()" class="role-select" <?= !$is_admin ? 'disabled' : '' ?>>
                                     <option value="lietotajs" <?= $user['tiesibas'] == 'lietotajs' ? 'selected' : '' ?>>Lietotājs</option>
                                     <option value="moderators" <?= $user['tiesibas'] == 'moderators' ? 'selected' : '' ?>>Moderators</option>
                                     <option value="administrators" <?= $user['tiesibas'] == 'administrators' ? 'selected' : '' ?>>Administrators</option>
@@ -154,6 +166,7 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
                             </form>
                         </td>
                         <td class="action-buttons">
+                            <?php if ($is_admin): ?>
                             <button onclick="showEditUserForm(<?= htmlspecialchars(json_encode($user)) ?>)" class="edit-btn">
                                 <i class="fas fa-edit"></i>
                             </button>
@@ -163,6 +176,9 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </form>
+                            <?php else: ?>
+                            <span style="color: #999; font-style: italic;">Nav tiesību</span>
+                            <?php endif; ?>
                         </td>
                     </tr>
                 <?php endwhile; ?>
@@ -171,12 +187,84 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
         </div>
     </div>
 
-    <!-- Модальное окно для добавления/редактирования пользователя -->
-    <!-- (оставляем без изменений) -->
+    <!-- Create User Modal -->
+    <?php if ($is_admin): ?>
+    <div id="createUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="hideCreateUserModal()">&times;</span>
+            <h2>Izveidot jaunu lietotāju</h2>
+            <form method="POST">
+                <div class="form-group">
+                    <label for="username">Lietotājvārds:</label>
+                    <input type="text" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Parole:</label>
+                    <input type="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label for="name">Vārds:</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="lastname">Uzvārds:</label>
+                    <input type="text" name="lastname" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">E-pasts:</label>
+                    <input type="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="approved"> Apstiprināts
+                    </label>
+                </div>
+                <button type="submit" name="create_user" class="admin-btn">Izveidot</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <div id="editUserModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" onclick="hideEditUserModal()">&times;</span>
+            <h2>Rediģēt lietotāju</h2>
+            <form method="POST">
+                <input type="hidden" id="edit_user_id" name="user_id">
+                <div class="form-group">
+                    <label for="edit_username">Lietotājvārds:</label>
+                    <input type="text" id="edit_username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_name">Vārds:</label>
+                    <input type="text" id="edit_name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_lastname">Uzvārds:</label>
+                    <input type="text" id="edit_lastname" name="lastname" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit_email">E-pasts:</label>
+                    <input type="email" id="edit_email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="edit_approved" name="approved"> Apstiprināts
+                    </label>
+                </div>
+                <button type="submit" name="update_user_details" class="admin-btn">Atjaunināt</button>
+            </form>
+        </div>
+    </div>
+    <?php endif; ?>
 
     <script>
         function showCreateUserForm() {
+            <?php if ($is_admin): ?>
             document.getElementById('createUserModal').style.display = 'block';
+            <?php else: ?>
+            alert('Jums nav tiesību izveidot jaunu lietotāju!');
+            <?php endif; ?>
         }
 
         function hideCreateUserModal() {
@@ -184,6 +272,7 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
         }
 
         function showEditUserForm(user) {
+            <?php if ($is_admin): ?>
             document.getElementById('edit_user_id').value = user.lietotajs_id;
             document.getElementById('edit_username').value = user.username;
             document.getElementById('edit_name').value = user.name;
@@ -191,6 +280,9 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
             document.getElementById('edit_email').value = user.email;
             document.getElementById('edit_approved').checked = user.approved == 1;
             document.getElementById('editUserModal').style.display = 'block';
+            <?php else: ?>
+            alert('Jums nav tiesību rediģēt lietotāju!');
+            <?php endif; ?>
         }
 
         function hideEditUserModal() {

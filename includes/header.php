@@ -257,7 +257,7 @@ mysqli_close($savienojums);
                         <i class="fas fa-plus"></i> Jauns Ieraksts
                     </button>
                 </li>
-                <li><a href="<?php echo $base_path; ?>profile.php" class="profile-btn"><i class="fas fa-user"></i> Profils</a></li>
+                <li><a href="<?php echo $base_path; ?>account.php" class="profile-btn"><i class="fas fa-user"></i> Profils</a></li>
             <?php else: ?>
                 <li><a href="<?php echo $base_path; ?>login.php" class="profile-btn"><i class="fas fa-user"></i> Pieslēgties</a></li>
             <?php endif; ?>

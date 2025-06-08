@@ -8,7 +8,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$stmt = $savienojums->prepare("SELECT username, name, lastname FROM eksamens_lietotajs WHERE lietotajs_id = ?");
+$stmt = $savienojums->prepare("SELECT username, name, lastname, tiesibas FROM eksamens_lietotajs WHERE lietotajs_id = ?");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -52,6 +52,13 @@ $liked_result = $liked_stmt->get_result();
         </div>
         <h1 class="user-name"><?php echo htmlspecialchars($user['name'] . ' ' . $user['lastname']); ?></h1>
         <p class="user-username">@<?php echo htmlspecialchars($user['username']); ?></p>
+        
+        <?php if ($user['tiesibas'] === 'administrators' || $user['tiesibas'] === 'moderators'): ?>
+            <a href="admin/ieraksts.php" class="logout-btn">
+                <i class="fas fa-cog"></i> Administrācija
+            </a>
+        <?php endif; ?>
+        
         <a href="logout.php" class="logout-btn">
             <i class="fas fa-sign-out-alt"></i> Iziet no konta
         </a>
