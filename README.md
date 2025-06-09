@@ -6,9 +6,9 @@
 
 Šī vietne ir izveidota, lai lietotāji varētu ērti iepazīties ar mitoloģijas pasauli.
 
-- Informācija ir ērti sakārtota dažādās kategorijās.
-- Pieejama **meklēšanas funkcija**, kas palīdz atrast konkrētus ierakstus.
-- Reģistrētie lietotāji var saglabāt sev interesējošos ierakstus ar atzīmi **"Patīk"**, un tie būs pieejami viņu profilā.
+Šī vietne ir izveidota, lai lietotāji varētu ērti iepazīties ar mitoloģijas pasauli. Informācija ir sakārtota dažādās sadaļās pēc kategorijām, kas ļauj ātri orientēties un atrast interesējošos ierakstus. Vietnē ir pieejama meklēšanas funkcija, kas vēl vairāk atvieglo nepieciešamās informācijas atrašanu.
+
+Reģistrētie lietotāji var atzīmēt sev interesējošos ierakstus ar “Patīk”, un tie tiks saglabāti viņu kontā, lai nākamreiz būtu viegli pieejami bez nepieciešamības tos atkārtoti meklēt.
 
 ## 🛠 Izmantotās tehnoloģijas
 
