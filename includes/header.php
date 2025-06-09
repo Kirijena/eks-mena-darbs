@@ -16,24 +16,81 @@ if (isset($_POST['create_record']) && isset($_SESSION['user_id'])) {
     if ($savienojums_create) {
         $type_id = (int)$_POST['type_id'];
         $category_id = (int)$_POST['category_id'];
-        $title = trim($_POST['title']); // Added title field
+        $title = trim($_POST['title']);
         $description = trim($_POST['description']);
         $country = trim($_POST['country']);
         $first_mention_date = trim($_POST['first_mention_date']);
         $description_text = trim($_POST['description_text']);
-        $images = trim($_POST['images']);
         $published = 0; // Always set to 0 for user submissions
-
-        $stmt = $savienojums_create->prepare("INSERT INTO eksamens_entries (type_id, category_id, title, description, country, first_mention_date, description_text, images, published, created_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param("iissssssi", $type_id, $category_id, $title, $description, $country, $first_mention_date, $description_text, $images, $published);
         
-        if ($stmt->execute()) {
-            $success_message = "Ieraksts veiksmīgi izveidots! Tas tiks pārbaudīts pirms publicēšanas.";
-        } else {
-            $error_message = "Kļūda ieraksta izveidošanā.";
+        // Handle file upload
+        $image_data = null;
+        $upload_error = false;
+        $upload_message = "";
+        
+        if (isset($_FILES['images']) && $_FILES['images']['error'] === UPLOAD_ERR_OK) {
+            // Check file size (16MB limit for MEDIUMBLOB)
+            $max_size = 16 * 1024 * 1024; // 16MB in bytes
+            if ($_FILES['images']['size'] > $max_size) {
+                $upload_error = true;
+                $upload_message = "Attēls ir pārāk liels. Maksimālais izmērs: 16MB";
+            }
+            
+            // Check file type
+            $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            $file_type = $_FILES['images']['type'];
+            
+            if (!in_array($file_type, $allowed_types)) {
+                $upload_error = true;
+                $upload_message = "Neatbalstīts faila tips. Atļautie tipi: JPEG, PNG, GIF, WebP";
+            }
+            
+            // Additional check using getimagesize for security
+            $image_info = getimagesize($_FILES['images']['tmp_name']);
+            if ($image_info === false) {
+                $upload_error = true;
+                $upload_message = "Fails nav derīgs attēls";
+            }
+            
+            if (!$upload_error) {
+                // Read file content
+                $image_data = file_get_contents($_FILES['images']['tmp_name']);
+                if ($image_data === false) {
+                    $upload_error = true;
+                    $upload_message = "Kļūda attēla nolasīšanā";
+                }
+            }
+        } elseif (isset($_FILES['images']) && $_FILES['images']['error'] !== UPLOAD_ERR_NO_FILE) {
+            // Handle other upload errors
+            switch ($_FILES['images']['error']) {
+                case UPLOAD_ERR_INI_SIZE:
+                case UPLOAD_ERR_FORM_SIZE:
+                    $upload_message = "Attēls ir pārāk liels";
+                    break;
+                case UPLOAD_ERR_PARTIAL:
+                    $upload_message = "Attēls tika augšupielādēts daļēji";
+                    break;
+                default:
+                    $upload_message = "Kļūda attēla augšupielādē";
+            }
+            $upload_error = true;
         }
         
-        $stmt->close();
+        if (!$upload_error) {
+            $stmt = $savienojums_create->prepare("INSERT INTO eksamens_entries (type_id, category_id, title, description, country, first_mention_date, description_text, images, published, created_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
+            $stmt->bind_param("iissssssi", $type_id, $category_id, $title, $description, $country, $first_mention_date, $description_text, $image_data, $published);
+            
+            if ($stmt->execute()) {
+                $success_message = "Ieraksts veiksmīgi izveidots! Tas tiks pārbaudīts pirms publicēšanas.";
+            } else {
+                $error_message = "Kļūda ieraksta izveidošanā.";
+            }
+            
+            $stmt->close();
+        } else {
+            $error_message = $upload_message;
+        }
+        
         mysqli_close($savienojums_create);
     }
 }
@@ -153,6 +210,24 @@ mysqli_close($savienojums);
             min-height: 80px;
         }
 
+        .form-group input[type="file"] {
+            border: 2px dashed #ddd;
+            padding: 15px;
+            text-align: center;
+            background-color: #f9f9f9;
+        }
+
+        .form-group input[type="file"]:hover {
+            border-color: #2196F3;
+            background-color: #f0f8ff;
+        }
+
+        .file-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
         .submit-btn, .cancel-btn {
             padding: 10px 20px;
             margin: 5px;
@@ -213,6 +288,15 @@ mysqli_close($savienojums);
             margin: 10px 0;
             border: 1px solid #f5c6cb;
         }
+
+        .file-preview {
+            margin-top: 10px;
+            max-width: 200px;
+            max-height: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -249,7 +333,6 @@ mysqli_close($savienojums);
                 </div>
             </li>
             <li><a href="<?php echo $base_path; ?>search.php" <?php echo $current_page === 'search' ? 'class="active"' : ''; ?>>🔍 Meklēt</a></li>
-            <li><a href="<?php echo $base_path; ?>about.php" <?php echo $current_page === 'about' ? 'class="active"' : ''; ?>>📜 Par Vietni</a></li>
             
             <?php if (isset($_SESSION['user_id'])): ?>
                 <li>
@@ -270,7 +353,7 @@ mysqli_close($savienojums);
 <div id="createRecordModal" class="modal">
     <div class="modal-content">
         <h2><i class="fas fa-plus"></i> Jauns Ieraksts</h2>
-        <form method="POST" accept-charset="UTF-8">
+        <form method="POST" accept-charset="UTF-8" enctype="multipart/form-data">
             <div class="form-group">
                 <label for="type_id">Kategorija</label>
                 <select name="type_id" required>
@@ -317,9 +400,13 @@ mysqli_close($savienojums);
             </div>
 
             <div class="form-group">
-                <label for="images">Attēli</label>
-                <input type="text" name="images" placeholder="Attēla URL">
-                <small>Ievadiet attēla URL</small>
+                <label for="images">Attēls</label>
+                <input type="file" name="images" id="imageInput" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onchange="previewImage(this)">
+                <div class="file-info">
+                    Maksimālais faila izmērs: 16MB<br>
+                    Atbalstītie formāti: JPEG, PNG, GIF, WebP
+                </div>
+                <img id="imagePreview" class="file-preview" alt="Attēla priekšskatījums">
             </div>
 
             <div style="text-align: center; margin-top: 20px;">
@@ -342,12 +429,50 @@ function showCreateRecordForm() {
     // Reset form
     form.reset();
     
+    // Hide image preview
+    document.getElementById('imagePreview').style.display = 'none';
+    
     // Show modal
     modal.style.display = 'block';
 }
 
 function hideCreateRecordModal() {
     document.getElementById('createRecordModal').style.display = 'none';
+}
+
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Check file size (16MB)
+        const maxSize = 16 * 1024 * 1024;
+        if (file.size > maxSize) {
+            alert('Attēls ir pārāk liels! Maksimālais izmērs: 16MB');
+            input.value = '';
+            preview.style.display = 'none';
+            return;
+        }
+        
+        // Check file type
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Neatbalstīts faila tips! Atļautie tipi: JPEG, PNG, GIF, WebP');
+            input.value = '';
+            preview.style.display = 'none';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        preview.style.display = 'none';
+    }
 }
 
 // Close modal when clicking outside

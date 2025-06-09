@@ -46,8 +46,8 @@ if ($is_logged_in && $_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['like
     exit();
 }
 
-// Modified query to only show published entries (published = 1)
-$stmt = mysqli_prepare($savienojums, "SELECT id, title, type_id, category_id, description, country, first_mention_date, description_text, published FROM eksamens_entries WHERE id = ? AND published = 1");
+// Modified query to include images field and only show published entries (published = 1)
+$stmt = mysqli_prepare($savienojums, "SELECT id, title, type_id, category_id, description, country, first_mention_date, description_text, images, published FROM eksamens_entries WHERE id = ? AND published = 1");
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
@@ -133,6 +133,17 @@ if ($row = mysqli_fetch_assoc($result)) {
             font-size: 2.5rem;
             margin: 0;
         }
+        .entry-image {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .entry-image img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
+            object-fit: cover;
+        }
         .entry-details {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -195,6 +206,13 @@ if ($row = mysqli_fetch_assoc($result)) {
     <div class="entry-header">
         <h1><?php echo htmlspecialchars($row['title']); ?></h1>
     </div>
+    
+    <?php if (!empty($row['images'])): ?>
+    <div class="entry-image">
+       <img src="show_image.php?id=<?php echo $row['id']; ?>" alt="<?php echo htmlspecialchars($row['title']); ?>">
+    </div>
+    <?php endif; ?>
+    
     <div class="entry-details">
         <div class="entry-field">
             <div class="label">Tips</div>

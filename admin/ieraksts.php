@@ -10,6 +10,39 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
+// Handle file upload
+function handleFileUpload($file) {
+    if (!isset($file) || $file['error'] !== UPLOAD_ERR_OK) {
+        return '';
+    }
+    
+    $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    $max_size = 16 * 1024 * 1024; // 16MB
+    
+    if (!in_array($file['type'], $allowed_types)) {
+        return '';
+    }
+    
+    if ($file['size'] > $max_size) {
+        return '';
+    }
+    
+    $upload_dir = '../uploads/';
+    if (!file_exists($upload_dir)) {
+        mkdir($upload_dir, 0777, true);
+    }
+    
+    $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+    $new_filename = uniqid() . '.' . $file_extension;
+    $upload_path = $upload_dir . $new_filename;
+    
+    if (move_uploaded_file($file['tmp_name'], $upload_path)) {
+        return $new_filename;
+    }
+    
+    return '';
+}
+
 if (isset($_POST['delete_record'])) {
     $record_id = (int)$_POST['record_id'];
     $stmt = $savienojums->prepare("DELETE FROM eksamens_entries WHERE id = ?");
@@ -26,13 +59,22 @@ if (isset($_POST['create_record'])) {
     $country = trim($_POST['country']);
     $first_mention_date = trim($_POST['first_mention_date']);
     $description_text = trim($_POST['description_text']);
-    $images = trim($_POST['images']);
     $published = isset($_POST['published']) ? 1 : 0;
+    
+    // Handle image upload or URL
+    $images = '';
+    if (isset($_FILES['images']) && $_FILES['images']['error'] === UPLOAD_ERR_OK) {
+        $images = handleFileUpload($_FILES['images']);
+    } elseif (!empty(trim($_POST['image_url']))) {
+        $images = trim($_POST['image_url']);
+    }
 
     $stmt = $savienojums->prepare("INSERT INTO eksamens_entries (type_id, category_id, title, description, country, first_mention_date, description_text, images, published, created_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())");
     $stmt->bind_param("iisssssi", $type_id, $category_id, $title, $description, $country, $first_mention_date, $description_text, $images, $published);
     $stmt->execute();
     $stmt->close();
+    
+    $success_message = "Ieraksts veiksmīgi izveidots!";
 }
 
 if (isset($_POST['update_record'])) {
@@ -44,13 +86,22 @@ if (isset($_POST['update_record'])) {
     $country = trim($_POST['country']);
     $first_mention_date = trim($_POST['first_mention_date']);
     $description_text = trim($_POST['description_text']);
-    $images = trim($_POST['images']);
     $published = isset($_POST['published']) ? 1 : 0;
+    
+    // Handle image upload or URL
+    $images = trim($_POST['current_image']); // Keep current image by default
+    if (isset($_FILES['images']) && $_FILES['images']['error'] === UPLOAD_ERR_OK) {
+        $images = handleFileUpload($_FILES['images']);
+    } elseif (!empty(trim($_POST['image_url']))) {
+        $images = trim($_POST['image_url']);
+    }
 
     $stmt = $savienojums->prepare("UPDATE eksamens_entries SET type_id = ?, category_id = ?, title = ?, description = ?, country = ?, first_mention_date = ?, description_text = ?, images = ?, published = ? WHERE id = ?");
     $stmt->bind_param("iissssssii", $type_id, $category_id, $title, $description, $country, $first_mention_date, $description_text, $images, $published, $record_id);
     $stmt->execute();
     $stmt->close();
+    
+    $success_message = "Ieraksts veiksmīgi atjaunots!";
 }
 
 $result = $savienojums->query("
@@ -88,8 +139,140 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="css/admin.css">
+    <style>
+        /* Modal styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 2% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .file-info {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .file-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #c3e6cb;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .submit-btn, .cancel-btn {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .submit-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .submit-btn:hover {
+            background-color: #45a049;
+        }
+
+        .cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background-color: #da190b;
+        }
+    </style>
 </head>
 <body>
+    <?php if (isset($success_message)): ?>
+        <div class="success-message"><?php echo htmlspecialchars($success_message); ?></div>
+    <?php endif; ?>
+
     <div class="admin-container">
         <div class="admin-header">
             <h1><i class="fas fa-book"></i> Mītoloģijas Ierakstu Pārvaldība</h1>
@@ -97,9 +280,9 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
                 <a href="users.php" class="admin-btn">Lietotāji</a>
                 <a href="type.php" class="admin-btn">Type</a>
                 <a href="kategoriju.php" class="admin-btn">Kategoriju</a>
-                <button onclick="showCreateRecordForm()" class="admin-btn">
-                    <i class="fas fa-plus"></i> Jauns Ieraksts
-                </button>
+                <button onclick="showCreateRecordForm()" class="new-record-btn">
+                        <i class="fas fa-plus"></i> Jauns Ieraksts
+                    </button>
                 <a href="logout.php" class="admin-btn logout">
                     <i class="fas fa-sign-out-alt"></i> Iziet
                 </a>
@@ -182,71 +365,87 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
     <!-- Create/Edit Record Modal -->
     <div id="createRecordModal" class="modal">
         <div class="modal-content">
-            <h2><i class="fas fa-plus"></i> Jauns Ieraksts</h2>
-            <form method="POST" accept-charset="UTF-8">
+            <h2 id="modalTitle"><i class="fas fa-plus"></i> Jauns Ieraksts</h2>
+            <form id="recordForm" method="POST" accept-charset="UTF-8" enctype="multipart/form-data">
+                <input type="hidden" id="recordId" name="record_id" value="">
+                <input type="hidden" id="currentImage" name="current_image" value="">
+                
                 <div class="form-group">
                     <label for="type_id">Kategorija</label>
-                    <select name="type_id" required>
+                    <select name="type_id" id="typeId" required>
                         <option value="">Izvēlieties kategoriju</option>
                         <?php foreach ($categories as $category): ?>
-                            <option value="<?= $category['id'] ?>"><?= htmlspecialchars($category['Nosaukums']) ?></option>
+                            <option value="<?php echo $category['id']; ?>"><?php echo htmlspecialchars($category['Nosaukums']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="category_id">Kategorijas ID</label>
-                    <select name="category_id" required>
+                    <select name="category_id" id="categoryId" required>
                         <option value="">Izvēlieties kategorijas ID</option>
                         <?php foreach ($category_ids as $cat_id): ?>
-                            <option value="<?= $cat_id['id_kat'] ?>"><?= htmlspecialchars($cat_id['Kategorija']) ?></option>
+                            <option value="<?php echo $cat_id['id_kat']; ?>"><?php echo htmlspecialchars($cat_id['Kategorija']); ?></option>
                         <?php endforeach; ?>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="title">Nosaukums</label>
-                    <input type="text" name="title" placeholder="Nosaukums" required accept-charset="UTF-8">
+                    <input type="text" name="title" id="title" placeholder="Ieraksta nosaukums" required accept-charset="UTF-8">
                 </div>
 
                 <div class="form-group">
                     <label for="description">Apraksts</label>
-                    <input type="text" name="description" placeholder="Apraksts" required accept-charset="UTF-8">
+                    <input type="text" name="description" id="description" placeholder="Īss apraksts" required accept-charset="UTF-8">
                 </div>
 
                 <div class="form-group">
                     <label for="country">Valsts</label>
-                    <input type="text" name="country" placeholder="Valsts" required accept-charset="UTF-8">
+                    <input type="text" name="country" id="country" placeholder="Valsts" required accept-charset="UTF-8">
                 </div>
 
                 <div class="form-group">
                     <label for="first_mention_date">Pirmā pieminējuma datums</label>
-                    <input type="text" name="first_mention_date" placeholder="Pirmā pieminējuma datums" accept-charset="UTF-8">
+                    <input type="text" name="first_mention_date" id="firstMentionDate" placeholder="Pirmā pieminējuma datums" accept-charset="UTF-8">
                 </div>
 
                 <div class="form-group">
                     <label for="description_text">Detalizēts apraksts</label>
-                    <textarea name="description_text" placeholder="Detalizēts apraksts" rows="4" accept-charset="UTF-8"></textarea>
+                    <textarea name="description_text" id="descriptionText" placeholder="Detalizēts apraksts" rows="4" accept-charset="UTF-8"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label for="images">Attēli</label>
-                    <input type="file" name="image_upload" accept="image/*" onchange="handleImageUpload(this)">
-                    <input type="text" name="images" placeholder="Attēla URL vai faila nosaukums" readonly>
-                    <small>Augšupielādējiet attēlu vai ievadiet URL</small>
+                    <label for="images">Attēls (fails)</label>
+                    <input type="file" name="images" id="imageInput" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onchange="previewImage(this)">
+                    <div class="file-info">
+                        Maksimālais faila izmērs: 16MB<br>
+                        Atbalstītie formāti: JPEG, PNG, GIF, WebP
+                    </div>
+                    <img id="imagePreview" class="file-preview" alt="Attēla priekšskatījums">
                 </div>
 
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="published" value="1">
-                        Publicēts
-                    </label>
+                    <label for="image_url">VAI Attēla URL</label>
+                    <input type="text" name="image_url" id="imageUrl" placeholder="https://example.com/image.jpg">
+                    <div class="file-info">Ja augšup netika augšupielādēts fails, var ievadīt attēla URL</div>
                 </div>
 
-                <button type="submit" name="create_record" class="submit-btn">Saglabāt</button>
-                <button type="button" onclick="hideCreateRecordModal()" class="cancel-btn">
-                    <i class="fas fa-times"></i> Atcelt
-                </button>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" name="published" id="published">
+                        <label for="published">Publicēts</label>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="submit" id="submitBtn" name="create_record" class="submit-btn">
+                        <i class="fas fa-save"></i> Saglabāt
+                    </button>
+                    <button type="button" onclick="hideCreateRecordModal()" class="cancel-btn">
+                        <i class="fas fa-times"></i> Atcelt
+                    </button>
+                </div>
             </form>
         </div>
     </div>
@@ -271,49 +470,73 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
         document.getElementById('imageModal').style.display = 'none';
     }
 
-    function handleImageUpload(input) {
+    function previewImage(input) {
+        const preview = document.getElementById('imagePreview');
         const file = input.files[0];
-        const imageUrlInput = input.parentNode.querySelector('input[name="images"]');
         
         if (file) {
-            // In a real implementation, you would upload the file to server
-            // For now, we'll just show the filename
-            imageUrlInput.value = file.name;
-            
-            // You can add actual file upload logic here
-            // uploadFile(file).then(filename => {
-            //     imageUrlInput.value = filename;
-            // });
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.style.display = 'none';
         }
     }
 
     function showCreateRecordForm() {
         const modal = document.getElementById('createRecordModal');
-        const form = modal.querySelector('form');
-
-        // Atiestatīt visus laukus
+        const form = document.getElementById('recordForm');
+        const title = document.getElementById('modalTitle');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // Reset form
         form.reset();
-
-        // Iztīrīt vecos hidden input un pogas no rediģēšanas
-        form.querySelectorAll('input[name="record_id"]').forEach(el => el.remove());
+        document.getElementById('recordId').value = '';
+        document.getElementById('currentImage').value = '';
         
-        // Noņemt update pogu, ja tāda ir
-        form.querySelectorAll('button[name="update_record"]').forEach(el => el.remove());
+        // Hide image preview
+        document.getElementById('imagePreview').style.display = 'none';
         
-        // Pārbaudīt, vai create_record poga jau ir formā. Ja nē – pievieno.
-        if (!form.querySelector('button[name="create_record"]')) {
-            const submitBtn = document.createElement('button');
-            submitBtn.type = 'submit';
-            submitBtn.name = 'create_record';
-            submitBtn.className = 'submit-btn';
-            submitBtn.textContent = 'Saglabāt';
-            form.insertBefore(submitBtn, form.querySelector('.cancel-btn'));
-        }
+        // Set create mode
+        title.innerHTML = '<i class="fas fa-plus"></i> Jauns Ieraksts';
+        submitBtn.name = 'create_record';
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Saglabāt';
+        
+        // Show modal
+        modal.style.display = 'block';
+    }
 
-        // Atjaunot virsrakstu
-        modal.querySelector('h2').innerHTML = '<i class="fas fa-plus"></i> Jauns Ieraksts';
-
-        // Parādīt modāli
+    function showEditRecordForm(record) {
+        const modal = document.getElementById('createRecordModal');
+        const form = document.getElementById('recordForm');
+        const title = document.getElementById('modalTitle');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        // Set form values
+        document.getElementById('recordId').value = record.id;
+        document.getElementById('currentImage').value = record.images || '';
+        document.getElementById('typeId').value = record.type_id || '';
+        document.getElementById('categoryId').value = record.category_id || '';
+        document.getElementById('title').value = record.title || '';
+        document.getElementById('description').value = record.description || '';
+        document.getElementById('country').value = record.country || '';
+        document.getElementById('firstMentionDate').value = record.first_mention_date || '';
+        document.getElementById('descriptionText').value = record.description_text || '';
+        document.getElementById('imageUrl').value = record.images || '';
+        document.getElementById('published').checked = record.published == 1;
+        
+        // Hide image preview initially
+        document.getElementById('imagePreview').style.display = 'none';
+        
+        // Set edit mode
+        title.innerHTML = '<i class="fas fa-edit"></i> Rediģēt Ierakstu';
+        submitBtn.name = 'update_record';
+        submitBtn.innerHTML = '<i class="fas fa-save"></i> Saglabāt Izmaiņas';
+        
+        // Show modal
         modal.style.display = 'block';
     }
 
@@ -321,49 +544,7 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
         document.getElementById('createRecordModal').style.display = 'none';
     }
 
-    function showEditRecordForm(record) {
-        const modal = document.getElementById('createRecordModal');
-        const form = modal.querySelector('form');
-
-        // Iestatīt vērtības formas laukos
-        form.querySelector('select[name="type_id"]').value = record.type_id;
-        form.querySelector('select[name="category_id"]').value = record.category_id;
-        form.querySelector('input[name="title"]').value = record.title || '';
-        form.querySelector('input[name="description"]').value = record.description;
-        form.querySelector('input[name="country"]').value = record.country;
-        form.querySelector('input[name="first_mention_date"]').value = record.first_mention_date;
-        form.querySelector('textarea[name="description_text"]').value = record.description_text;
-        form.querySelector('input[name="images"]').value = record.images;
-        form.querySelector('input[name="published"]').checked = record.published == 1;
-
-        // Mainīt virsrakstu
-        modal.querySelector('h2').innerHTML = '<i class="fas fa-edit"></i> Rediģēt Ierakstu';
-
-        // Noņemt vecas pogas
-        form.querySelectorAll('button[name="create_record"]').forEach(el => el.remove());
-        form.querySelectorAll('button[name="update_record"]').forEach(el => el.remove());
-        form.querySelectorAll('input[name="record_id"]').forEach(el => el.remove());
-
-        // Pievienot slēptu lauku ar ieraksta ID
-        const recordIdInput = document.createElement('input');
-        recordIdInput.type = 'hidden';
-        recordIdInput.name = 'record_id';
-        recordIdInput.value = record.id;
-        form.appendChild(recordIdInput);
-
-        // Pievienot pogu "update_record"
-        const submitBtn = document.createElement('button');
-        submitBtn.type = 'submit';
-        submitBtn.name = 'update_record';
-        submitBtn.className = 'submit-btn';
-        submitBtn.textContent = 'Saglabāt izmaiņas';
-        form.insertBefore(submitBtn, form.querySelector('.cancel-btn'));
-
-        // Parādīt modālo logu
-        modal.style.display = 'block';
-    }
-
-    // Aizvērt modālo logu, noklikšķinot ārpus tā
+    // Close modal when clicking outside
     window.onclick = function(event) {
         const createModal = document.getElementById('createRecordModal');
         const imageModal = document.getElementById('imageModal');

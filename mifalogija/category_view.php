@@ -9,6 +9,7 @@ $base_path = $is_mythology_page ? '../' : '';
 
 // Get parameters
 $category_id = isset($_GET['category_id']) ? (int)$_GET['category_id'] : 0;
+$type_id = isset($_GET['type_id']) ? (int)$_GET['type_id'] : 0;
 $selected_mythology = isset($_GET['mitologija']) ? urldecode($_GET['mitologija']) : '';
 
 // Database connection
@@ -25,26 +26,66 @@ if (!$savienojums) {
 
 mysqli_set_charset($savienojums, "utf8mb4");
 
-// Get category name
+// Get category name - using the correct table name from your reference code
 $category_name = "Nezināma kategorija";
 if ($category_id > 0) {
-    $sql_cat = "SELECT Nosaukums FROM eksamens_categories WHERE id = ?";
+    $sql_cat = "SELECT Kategorija FROM eksamens_kategorija WHERE id_kat = ?";
     $stmt_cat = mysqli_prepare($savienojums, $sql_cat);
     mysqli_stmt_bind_param($stmt_cat, "i", $category_id);
     mysqli_stmt_execute($stmt_cat);
     $result_cat = mysqli_stmt_get_result($stmt_cat);
     if ($row_cat = mysqli_fetch_assoc($result_cat)) {
-        $category_name = $row_cat['Nosaukums'];
+        $category_name = $row_cat['Kategorija'];
     }
     mysqli_stmt_close($stmt_cat);
 }
 
-// Get all records for this category - ONLY PUBLISHED RECORDS (published = 1)
+// Get type name
+$type_name = "";
+if ($type_id > 0) {
+    $sql_type = "SELECT Nosaukums FROM eksamens_categories WHERE id = ?";
+    $stmt_type = mysqli_prepare($savienojums, $sql_type);
+    mysqli_stmt_bind_param($stmt_type, "i", $type_id);
+    mysqli_stmt_execute($stmt_type);
+    $result_type = mysqli_stmt_get_result($stmt_type);
+    if ($row_type = mysqli_fetch_assoc($result_type)) {
+        $type_name = $row_type['Nosaukums'];
+    }
+    mysqli_stmt_close($stmt_type);
+}
+
+// Get all records for this category and type - ONLY PUBLISHED RECORDS (published = 1)
+// Both category_id AND type_id should be provided for filtering
 $records = [];
-if ($category_id > 0) {
-    $sql_records = "SELECT id, description, country, first_mention_date FROM eksamens_entries WHERE category_id = ? AND published = 1 ORDER BY description";
+if ($category_id > 0 && $type_id > 0) {
+    // Filter by both category_id and type_id - both are required
+    $sql_records = "SELECT id, title, description, country, images, first_mention_date FROM eksamens_entries WHERE category_id = ? AND type_id = ? AND published = 1 ORDER BY title";
+    $stmt_records = mysqli_prepare($savienojums, $sql_records);
+    mysqli_stmt_bind_param($stmt_records, "ii", $category_id, $type_id);
+    mysqli_stmt_execute($stmt_records);
+    $result_records = mysqli_stmt_get_result($stmt_records);
+    
+    while ($row = mysqli_fetch_assoc($result_records)) {
+        $records[] = $row;
+    }
+    mysqli_stmt_close($stmt_records);
+} else if ($category_id > 0) {
+    // If only category_id is provided, show all records for that category
+    $sql_records = "SELECT id, title, description, country, images, first_mention_date FROM eksamens_entries WHERE category_id = ? AND published = 1 ORDER BY title";
     $stmt_records = mysqli_prepare($savienojums, $sql_records);
     mysqli_stmt_bind_param($stmt_records, "i", $category_id);
+    mysqli_stmt_execute($stmt_records);
+    $result_records = mysqli_stmt_get_result($stmt_records);
+    
+    while ($row = mysqli_fetch_assoc($result_records)) {
+        $records[] = $row;
+    }
+    mysqli_stmt_close($stmt_records);
+} else if ($type_id > 0) {
+    // If only type_id is provided, show all records for that type
+    $sql_records = "SELECT id, title, description, country, images, first_mention_date FROM eksamens_entries WHERE type_id = ? AND published = 1 ORDER BY title";
+    $stmt_records = mysqli_prepare($savienojums, $sql_records);
+    mysqli_stmt_bind_param($stmt_records, "i", $type_id);
     mysqli_stmt_execute($stmt_records);
     $result_records = mysqli_stmt_get_result($stmt_records);
     
@@ -292,6 +333,38 @@ mysqli_close($savienojums);
             font-size: 0.8rem;
         }
 
+        .back-link {
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(146, 64, 14, 0.3);
+            text-decoration: none;
+            color: white;
+        }
+
+        .back-link i {
+            font-size: 0.8rem;
+        }
+
+
+
         /* Empty State */
         .no-content {
             text-align: center;
@@ -318,6 +391,20 @@ mysqli_close($savienojums);
             opacity: 0.8;
             font-style: italic;
         }
+
+        .record-image-wrapper {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .record-image {
+            max-width: 50%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            object-fit: cover;
+        }
+
 
         /* Responsive Design */
         @media (max-width: 768px) {
@@ -381,7 +468,19 @@ mysqli_close($savienojums);
     <!-- Main Container -->
     <div class="container">
         <div class="category-section">
-            <h1><i class="fas fa-folder-open"></i> <?php echo htmlspecialchars($category_name); ?></h1>
+            <h1><i class="fas fa-folder-open"></i> 
+                <?php 
+                if (!empty($type_name) && !empty($category_name)) {
+                    echo htmlspecialchars($type_name) . " - " . htmlspecialchars($category_name);
+                } else if (!empty($category_name)) {
+                    echo htmlspecialchars($category_name);
+                } else if (!empty($type_name)) {
+                    echo htmlspecialchars($type_name);
+                } else {
+                    echo "Ieraksti";
+                }
+                ?>
+            </h1>
             <div class="mythology-subtitle">
                 <?php echo htmlspecialchars($selected_mythology); ?>
             </div>
@@ -392,8 +491,15 @@ mysqli_close($savienojums);
                     <?php foreach ($records as $record): ?>
                         <div class="record-card">
                             <h3 class="record-title">
-                                <?php echo htmlspecialchars($record['description']); ?>
+                                <?php echo htmlspecialchars($record['title']); ?>
                             </h3>
+
+                            <?php if (!empty($record['description'])): ?>
+                                <div class="record-field">
+                                    <span class="field-label">Description:</span>
+                                    <span class="field-value"><?php echo htmlspecialchars($record['description']); ?></span>
+                                </div>
+                            <?php endif; ?>
                             
                             <?php if (!empty($record['country'])): ?>
                                 <div class="record-field">
@@ -408,6 +514,10 @@ mysqli_close($savienojums);
                                     <span class="field-value"><?php echo htmlspecialchars($record['first_mention_date']); ?></span>
                                 </div>
                             <?php endif; ?>
+
+                             <div class="record-image-wrapper">
+                                <img src="show_image.php?id=<?php echo $record['id']; ?>" alt="<?php echo htmlspecialchars($record['title']); ?>" class="record-image">
+                            </div>
                             
                             <a href="<?php echo $base_path; ?>mifalogija/entry.php?id=<?php echo $record['id']; ?>" class="learn-more-btn">
                                 <i class="fas fa-book-open"></i>
@@ -422,7 +532,7 @@ mysqli_close($savienojums);
                 <div class="no-content">
                     <i class="fas fa-search"></i>
                     <h3>Nav atrasti ieraksti</h3>
-                    <p>Šajā kategorijā pašlaik nav pieejami publicēti ieraksti.</p>
+                    <p>Šajā sadaļā pašlaik nav pieejami publicēti ieraksti.</p>
                 </div>
             <?php endif; ?>
 
