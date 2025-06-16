@@ -20,7 +20,7 @@ $result = mysqli_stmt_get_result($stmt);
 if ($row = mysqli_fetch_assoc($result)) {
     $imageData = $row['images'];
     
-    // Определим тип изображения (можно сохранить в базе MIME-типы отдельно, но тут авто-определение)
+
     $finfo = finfo_open();
     $mime_type = finfo_buffer($finfo, $imageData, FILEINFO_MIME_TYPE);
     finfo_close($finfo);

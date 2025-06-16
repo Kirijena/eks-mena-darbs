@@ -80,7 +80,7 @@ if ($row = mysqli_fetch_assoc($result)) {
 
     $liked = false;
     if ($is_logged_in) {
-        $user_id = (int)$_SESSION['admin_id'];
+        $user_id = (int)$_SESSION['user_id']; // Changed from 'admin_id' to 'user_id'
         $liked_stmt = mysqli_prepare($savienojums, "SELECT 1 FROM liked_entries WHERE user_id = ? AND entry_id = ?");
         mysqli_stmt_bind_param($liked_stmt, "ii", $user_id, $id);
         mysqli_stmt_execute($liked_stmt);
@@ -95,111 +95,7 @@ if ($row = mysqli_fetch_assoc($result)) {
 <head>
     <meta charset="UTF-8">
     <title><?php echo htmlspecialchars($row['title']); ?></title>
-    <style>
-        :root {
-            --color-primary: #92400e;
-            --color-secondary: #b45309;
-            --color-background: #fef3c7;
-            --color-surface: rgba(255, 255, 255, 0.9);
-            --color-text: #78350f;
-            --color-text-light: #92400e;
-            --color-border: #d97706;
-            --color-success: #059669;
-            --color-error: #dc2626;
-            --color-warning: #d97706;
-        }
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(to bottom, #fee0c7, #e9aa75);
-            min-height: 100vh;
-            color: var(--color-text);
-            padding-top: 80px;
-        }
-        .entry-container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: var(--color-surface);
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        }
-        .entry-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .entry-header h1 {
-            color: var(--color-primary);
-            font-family: 'Cinzel', serif;
-            font-size: 2.5rem;
-            margin: 0;
-        }
-        .entry-image {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .entry-image img {
-            max-width: 100%;
-            max-height: 400px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.3);
-            object-fit: cover;
-        }
-        .entry-details {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .entry-field {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
-            border-left: 4px solid var(--color-secondary);
-            font-size: 1.2rem;
-        }
-        .entry-field .label {
-            color: var(--color-text-light);
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 1.5rem;
-        }
-        .entry-description {
-            background: white;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 4px 12px rgba(139, 69, 19, 0.1);
-            border-left: 4px solid var(--color-secondary);
-            font-size: 1.2rem;
-        }
-        .entry-description .label {
-            color: var(--color-text-light);
-            font-weight: bold;
-            margin-bottom: 5px;
-            font-size: 1.5rem;
-        }
-        .back-link {
-            display: inline-block;
-            margin-top: 20px;
-            padding: 10px 20px;
-            background: var(--color-primary);
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: background 0.3s;
-            cursor: pointer;
-        }
-        .back-link:hover {
-            background: var(--color-secondary);
-        }
-        @media (max-width: 768px) {
-            .entry-details {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="mifal.css">
 </head>
 <body>
 <div class="entry-container">
@@ -242,7 +138,7 @@ if ($row = mysqli_fetch_assoc($result)) {
             <?php if (!$liked): ?>
                 <form method="post" action="">
                     <input type="hidden" name="like_entry_id" value="<?php echo $id; ?>">
-                    <button type="submit" style="padding: 10px 20px; background: var(--color-success); color: white; border: none; border-radius: 6px; cursor: pointer;">
+                    <button type="submit" style="padding: 10px 20px; background: green; color: white; border: none; border-radius: 6px; cursor: pointer;">
                         👍 Patīk
                     </button>
                 </form>

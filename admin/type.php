@@ -81,57 +81,6 @@ $result = $savienojums->query("SELECT * FROM eksamens_categories ORDER BY id DES
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="css/admin.css">
-     <style>
-        .message {
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-            font-weight: bold;
-            display: none;
-            animation: slideDown 0.3s ease-out;
-        }
-        
-        .message.success {
-            background-color: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            border-left: 5px solid #28a745;
-        }
-        
-        .message.error {
-            background-color: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            border-left: 5px solid #dc3545;
-        }
-        
-        .message.success::before {
-            content: "\f00c";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            margin-right: 10px;
-            color: #28a745;
-        }
-        
-        .message.error::before {
-            content: "\f071";
-            font-family: "Font Awesome 6 Free";
-            font-weight: 900;
-            margin-right: 10px;
-            color: #dc3545;
-        }
-        
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="admin-container">
