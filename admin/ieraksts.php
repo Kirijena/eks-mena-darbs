@@ -2,12 +2,30 @@
 session_start();
 require '../includes/connect_db.php';
 
-// Set charset to UTF-8 for proper Latvian character handling
 mysqli_set_charset($savienojums, "utf8");
 
 if (!isset($_SESSION['admin_id'])) {
     header('Location: login.php');
     exit();
+}
+
+// Initialize message variables
+$message = '';
+$message_type = '';
+
+// Delete Category
+if (isset($_POST['delete_category'])) {
+    $category_id = (int)$_POST['category_id'];
+    $stmt = $savienojums->prepare("DELETE FROM eksamens_categories WHERE id = ?");
+    $stmt->bind_param("i", $category_id);
+    
+    if ($stmt->execute()) {
+        $message = 'Datu tips ir veiksmīgi izdzēsts!';
+        $message_type = 'success';
+    } else {
+        $message = 'Datu tipu nevar dzēst!';
+        $message_type = 'error';
+    }
 }
 
 if (isset($_POST['delete_record'])) {
@@ -159,6 +177,22 @@ $category_ids = [];
 while ($cat_id = $category_ids_result->fetch_assoc()) {
     $category_ids[] = $cat_id;
 }
+
+// Function to safely encode data for JavaScript
+function safeJsonEncode($data) {
+    // Handle null values and convert to empty strings where appropriate
+    $safeData = [];
+    foreach ($data as $key => $value) {
+        if ($key === 'images' && !empty($value)) {
+            // Convert binary image data to base64 for safe transport
+            $safeData[$key] = base64_encode($value);
+        } else {
+            // Convert null to empty string, and escape special characters
+            $safeData[$key] = $value === null ? '' : $value;
+        }
+    }
+    return json_encode($safeData, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_HEX_TAG);
+}
 ?>
 
 <!DOCTYPE html>
@@ -171,49 +205,6 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="css/admin.css">
-    <style>
-        .expanded-image {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .expanded-image-content {
-            position: relative;
-            max-width: 90%;
-            max-height: 90%;
-        }
-        
-        .expanded-image-content img {
-            max-width: 100%;
-            max-height: 80vh;
-            display: block;
-            margin: 0 auto;
-        }
-        
-        .close-expanded-image {
-            position: absolute;
-            top: -40px;
-            right: 0;
-            color: white;
-            font-size: 35px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-        
-        .expanded-image-info {
-            color: white;
-            text-align: center;
-            margin-top: 10px;
-        }
-    </style>
 </head>
 <body>
     <?php if (isset($_SESSION['success_message'])): ?>
@@ -264,11 +255,11 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
                         <td>
                             <span class="category-id-name"><?= htmlspecialchars($record['category_id_name'] ?? 'Nav atrasts') ?></span>
                         </td>
-                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['title']) ?>')"><?= htmlspecialchars($record['title'] ?? '') ?></td>
-                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['description']) ?>')"><?= htmlspecialchars(substr($record['description'], 0, 50)) ?>...</td>
-                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['country']) ?>')"><?= htmlspecialchars($record['country']) ?></td>
-                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['first_mention_date']) ?>')"><?= htmlspecialchars($record['first_mention_date']) ?></td>
-                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['description_text']) ?>')"><?= htmlspecialchars(substr($record['description_text'], 0, 50)) ?>...</td>
+                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['title'] ?? '', ENT_QUOTES) ?>')"><?= htmlspecialchars($record['title'] ?? '') ?></td>
+                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['description'] ?? '', ENT_QUOTES) ?>')"><?= htmlspecialchars(substr($record['description'] ?? '', 0, 50)) ?>...</td>
+                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['country'] ?? '', ENT_QUOTES) ?>')"><?= htmlspecialchars($record['country'] ?? '') ?></td>
+                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['first_mention_date'] ?? '', ENT_QUOTES) ?>')"><?= htmlspecialchars($record['first_mention_date'] ?? '') ?></td>
+                        <td class="clickable-text" onclick="showExpandedText('<?= htmlspecialchars($record['description_text'] ?? '', ENT_QUOTES) ?>')"><?= htmlspecialchars(substr($record['description_text'] ?? '', 0, 50)) ?>...</td>
                         <td>
                             <?php if (!empty($record['images'])): ?>
                                 <button onclick="showExpandedImage('data:image/jpeg;base64,<?= base64_encode($record['images']) ?>')" class="image-btn">
@@ -279,9 +270,9 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
                             <?php endif; ?>
                         </td>
                         <td><?= $record['published'] ? 'Jā' : 'Nē' ?></td>
-                        <td><?= htmlspecialchars($record['created_date']) ?></td>
+                        <td><?= htmlspecialchars($record['created_date'] ?? '') ?></td>
                         <td class="action-buttons">
-                            <button onclick='showEditRecordForm(<?= json_encode($record) ?>)' class="edit-btn">
+                            <button onclick='showEditRecordForm(<?= safeJsonEncode($record) ?>)' class="edit-btn">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <form method="POST" class="inline-form" onsubmit="return confirm('Vai tiešām vēlaties dzēst šo ierakstu?')">
@@ -498,10 +489,12 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
     }
 
     function showEditRecordForm(record) {
+        console.log('Edit record called with:', record); // Debug log
+        
         const modal = document.getElementById('editRecordModal');
         
-        document.getElementById('edit_record_id').value = record.id;
-        document.getElementById('edit_current_image').value = record.images || '';
+        // Set form values with proper null checking
+        document.getElementById('edit_record_id').value = record.id || '';
         document.getElementById('edit_type_id').value = record.type_id || '';
         document.getElementById('edit_category_id').value = record.category_id || '';
         document.getElementById('edit_title').value = record.title || '';
@@ -511,15 +504,12 @@ while ($cat_id = $category_ids_result->fetch_assoc()) {
         document.getElementById('edit_description_text').value = record.description_text || '';
         document.getElementById('edit_published').checked = record.published == 1;
         
+        // Handle image preview
         const preview = document.getElementById('edit_imagePreview');
-        if (record.images) {
-            if (record.images.startsWith('data:image')) {
-                preview.src = record.images;
-                preview.style.display = 'block';
-            } else {
-                preview.src = 'data:image/jpeg;base64,' + btoa(record.images);
-                preview.style.display = 'block';
-            }
+        if (record.images && record.images.length > 0) {
+            // Images are now base64 encoded in the record object
+            preview.src = 'data:image/jpeg;base64,' + record.images;
+            preview.style.display = 'block';
         } else {
             preview.style.display = 'none';
         }

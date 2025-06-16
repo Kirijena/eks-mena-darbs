@@ -66,6 +66,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['register'])) {
         $error = "Parolei jābūt vismaz 8 rakstzīmes garai";
     } elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $error = "Nederīga e-pasta adrese";
+    } elseif (strcasecmp($name, $lastname) === 0) {
+        $error = "Vārds un uzvārds nedrīkst būt vienādi.";
     } else {
         // Check if username already exists
         $stmt = $savienojums->prepare("SELECT lietotajs_id FROM eksamens_lietotajs WHERE username = ?");

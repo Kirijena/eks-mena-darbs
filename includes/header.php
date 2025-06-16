@@ -1,7 +1,8 @@
 <?php
 // Check for user session and handle record creation
-session_start();
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // Handle new record creation (only for logged-in users)
 if (isset($_POST['create_record']) && isset($_SESSION['user_id'])) {
     // Database connection for record creation

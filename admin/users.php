@@ -7,16 +7,25 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
+
+// Initialize message variables
+$message = '';
+$message_type = '';
+
 if (isset($_POST['delete_user'])) {
     $user_id = (int)$_POST['user_id'];
     $stmt = $savienojums->prepare("DELETE FROM eksamens_lietotajs WHERE lietotajs_id = ?");
     $stmt->bind_param("i", $user_id);
-    $stmt->execute();
+    if ($stmt->execute()) {
+        $message = 'Lietotājs veiksmīgi izdzēsts!';
+        $message_type = 'success';
+    } else {
+        $message = 'Lietotāju neizdevās dzēst!';
+        $message_type = 'error';
+    }
 }
 
-$message = ''; // Для уведомлений на странице
 
-// Проверяем права текущего пользователя
 $current_admin_id = $_SESSION['admin_id'];
 $check_stmt = $savienojums->prepare("SELECT tiesibas FROM eksamens_lietotajs WHERE lietotajs_id = ?");
 $check_stmt->bind_param("i", $current_admin_id);
@@ -33,9 +42,11 @@ if (isset($_POST['update_user'])) {
         $stmt = $savienojums->prepare("UPDATE eksamens_lietotajs SET approved = ? WHERE lietotajs_id = ?");
         $stmt->bind_param("ii", $approved, $user_id);
         $stmt->execute();
-    } else {
+        } else {
         $message = 'Jums nav tiesību mainīt statusu!';
+        $message_type = 'error';
     }
+
 }
 
 if (isset($_POST['update_tiesibas'])) {
@@ -46,8 +57,9 @@ if (isset($_POST['update_tiesibas'])) {
             $stmt = $savienojums->prepare("UPDATE eksamens_lietotajs SET tiesibas = ? WHERE lietotajs_id = ?");
             $stmt->bind_param("si", $tiesibas, $user_id);
             $stmt->execute();
-        } else {
+         } else {
             $message = 'Jums nav tiesību mainīt lomu!';
+            $message_type = 'error';
         }
     }
 }
@@ -65,9 +77,12 @@ if (isset($_POST['create_user'])) {
         $stmt->bind_param("sssssis", $username, $password, $name, $lastname, $email, $approved, $tiesibas);
         $stmt->execute();
         $message = 'Lietotājs veiksmīgi izveidots!';
+        $message_type = 'success';
     } else {
         $message = 'Jums nav tiesību izveidot jaunu lietotāju!';
+        $message_type = 'error';
     }
+
 }
 
 if (isset($_POST['update_user_details'])) {
@@ -83,9 +98,12 @@ if (isset($_POST['update_user_details'])) {
         $stmt->bind_param("ssssii", $username, $name, $lastname, $email, $approved, $user_id);
         $stmt->execute();
         $message = 'Lietotāja dati veiksmīgi atjaunināti!';
+        $message_type = 'success';
     } else {
         $message = 'Jums nav tiesību rediģēt lietotāju!';
+        $message_type = 'error';
     }
+
 }
 
 $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietotajs_id DESC");
@@ -100,6 +118,57 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="css/admin.css">
+     <style>
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-left: 5px solid #28a745;
+        }
+        
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-left: 5px solid #dc3545;
+        }
+        
+        .message.success::before {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            margin-right: 10px;
+            color: #28a745;
+        }
+        
+        .message.error::before {
+            content: "\f071";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            margin-right: 10px;
+            color: #dc3545;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -120,7 +189,9 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
             </div>
         </div>
 
-        <div class="message" id="messageBox"><?= htmlspecialchars($message) ?></div>
+        <?php if (!empty($message)): ?>
+        <div class="message <?= $message_type ?>"><?= htmlspecialchars($message) ?></div>
+        <?php endif; ?>
 
         <div class="users-table-container">
             <table class="users-table">
@@ -307,6 +378,16 @@ $result = $savienojums->query("SELECT * FROM eksamens_lietotajs ORDER BY lietota
                 }, 3000);
             }
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+    const message = document.querySelector('.message');
+    if (message) {
+        message.style.display = 'block';
+        setTimeout(() => {
+            message.style.display = 'none';
+        }, 3000); // 3000 миллисекунд = 3 секунды
+    }
+});
     </script>
 </body>
 </html>

@@ -7,12 +7,23 @@ if (!isset($_SESSION['admin_id'])) {
     exit();
 }
 
+// Initialize message variables
+$message = '';
+$message_type = '';
+
 // Delete Category
 if (isset($_POST['delete_category'])) {
     $category_id = (int)$_POST['category_id'];
     $stmt = $savienojums->prepare("DELETE FROM eksamens_categories WHERE id = ?");
     $stmt->bind_param("i", $category_id);
-    $stmt->execute();
+    
+    if ($stmt->execute()) {
+        $message = 'Datu tips ir veiksmīgi izdzēsts!';
+        $message_type = 'success';
+    } else {
+        $message = 'Datu tipu nevar dzēst!';
+        $message_type = 'error';
+    }
 }
 
 // Create Category
@@ -21,7 +32,17 @@ if (isset($_POST['create_category'])) {
     if (!empty($name)) {
         $stmt = $savienojums->prepare("INSERT INTO eksamens_categories (Nosaukums) VALUES (?)");
         $stmt->bind_param("s", $name);
-        $stmt->execute();
+        
+        if ($stmt->execute()) {
+            $message = 'Izveidots jauns datu tips!';
+            $message_type = 'success';
+        } else {
+            $message = 'Nevar izveidot jaunu datu tipu!';
+            $message_type = 'error';
+        }
+    } else {
+        $message = 'Nosaukums nedrīkst būt tukšs!';
+        $message_type = 'error';
     }
 }
 
@@ -29,10 +50,22 @@ if (isset($_POST['create_category'])) {
 if (isset($_POST['update_category'])) {
     $category_id = (int)$_POST['category_id'];
     $name = trim($_POST['name']);
-    $description = trim($_POST['description']);
-    $stmt = $savienojums->prepare("UPDATE eksamens_categories SET Nosaukums = ?, description = ? WHERE id = ?");
-    $stmt->bind_param("ssi", $name, $description, $category_id);
-    $stmt->execute();
+    
+    if (!empty($name)) {
+        $stmt = $savienojums->prepare("UPDATE eksamens_categories SET Nosaukums = ? WHERE id = ?");
+        $stmt->bind_param("si", $name, $category_id);
+        
+        if ($stmt->execute()) {
+            $message = 'Tipu dati veiksmīgi atjaunināti!';
+            $message_type = 'success';
+        } else {
+            $message = 'Nav iespējas atjaunināt datu tipu!';
+            $message_type = 'error';
+        }
+    } else {
+        $message = 'Nosaukums nedrīkst būt tukšs!';
+        $message_type = 'error';
+    }
 }
 
 // Get all categories
@@ -48,6 +81,57 @@ $result = $savienojums->query("SELECT * FROM eksamens_categories ORDER BY id DES
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="css/admin.css">
+     <style>
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            font-weight: bold;
+            display: none;
+            animation: slideDown 0.3s ease-out;
+        }
+        
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-left: 5px solid #28a745;
+        }
+        
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            border-left: 5px solid #dc3545;
+        }
+        
+        .message.success::before {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            margin-right: 10px;
+            color: #28a745;
+        }
+        
+        .message.error::before {
+            content: "\f071";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            margin-right: 10px;
+            color: #dc3545;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="admin-container">
@@ -65,6 +149,10 @@ $result = $savienojums->query("SELECT * FROM eksamens_categories ORDER BY id DES
                 </a>
             </div>
         </div>
+
+        <?php if (!empty($message)): ?>
+        <div class="message <?= htmlspecialchars($message_type) ?>" id="messageBox"><?= htmlspecialchars($message) ?></div>
+        <?php endif; ?>
 
         <div class="users-table-container">
             <table class="users-table">
@@ -127,9 +215,6 @@ $result = $savienojums->query("SELECT * FROM eksamens_categories ORDER BY id DES
                 <div class="form-group">
                     <input type="text" name="name" id="edit_name" placeholder="Nosaukums" required>
                 </div>
-                <div class="form-group">
-                    <textarea name="description" id="edit_description" placeholder="Apraksts"></textarea>
-                </div>
                 <div class="form-actions">
                     <button type="submit" name="update_category" class="submit-btn">
                         <i class="fas fa-save"></i> Saglabāt
@@ -154,7 +239,6 @@ $result = $savienojums->query("SELECT * FROM eksamens_categories ORDER BY id DES
     function showEditCategoryForm(category) {
         document.getElementById('edit_category_id').value = category.id;
         document.getElementById('edit_name').value = category.Nosaukums;
-        document.getElementById('edit_description').value = category.description;
         document.getElementById('editCategoryModal').style.display = 'block';
     }
 
@@ -166,6 +250,16 @@ $result = $savienojums->query("SELECT * FROM eksamens_categories ORDER BY id DES
         if (event.target == document.getElementById('createCategoryModal') || event.target == document.getElementById('editCategoryModal')) {
             hideCreateCategoryModal();
             hideEditCategoryModal();
+        }
+    }
+
+    window.onload = function() {
+        var msg = document.getElementById('messageBox');
+        if (msg && msg.textContent.trim() !== '') {
+            msg.style.display = 'block';
+            setTimeout(function() {
+                msg.style.display = 'none';
+            }, 3000);
         }
     }
     </script>
